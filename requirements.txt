@@ -1,0 +1,10 @@
+numpy
+pandas
+nltk
+pyspellchecker
+language_tool_python
+re
+requests
+pyodbc
+pandera
+pandas_schema
