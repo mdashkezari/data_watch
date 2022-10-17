@@ -1,5 +1,5 @@
 
-import os
+import os, platform
 import pyodbc
 import inspect
 import warnings
@@ -9,8 +9,12 @@ import pandas.io.sql as sql
 
 def connect(alias):
     try:
+        if platform.system().lower().find("darwin") != -1:
+            MAC_DRIVER = "/usr/local/lib/libtdsodbc.so"
+        elif platform.system().lower().find("linux") != -1:     
+            MAC_DRIVER = "/usr/lib/x86_64-linux-gnu/odbc/libtdsodbc.so"        
         conn = None
-        conn = pyodbc.connect(DRIVER="/usr/lib/x86_64-linux-gnu/odbc/libtdsodbc.so", 
+        conn = pyodbc.connect(DRIVER=MAC_DRIVER, 
                             TDS_Version="7.3", 
                             server={
                                     "rainier": os.environ.get("DB_SERVER_RAINIER", ""), 
@@ -19,8 +23,8 @@ def connect(alias):
                                     }[alias], 
                         port=os.environ.get("DB_PORT", ""), 
                             DATABASE="Opedia", 
-                            Uid=os.environ.get("DB_READ_ONLY_USER", ""), 
-                            Pwd=os.environ.get("DB_READ_ONLY_PASSWORD", "") 
+                            Uid=os.environ.get("DB_REST_USER", ""), 
+                            Pwd=os.environ.get("DB_REST_USER_PASSWORD", "") 
                             )
     except Exception as e:
         print(f"Exception in connect: {str(e)}")    
