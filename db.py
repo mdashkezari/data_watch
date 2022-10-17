@@ -41,7 +41,7 @@ def query(statement, servers=["rainier"]):
             warnings.simplefilter("ignore")
             conn = connect(servers[0])    
             data = sql.read_sql(statement, conn)
-            message = "success!"
+            message = "success"
     except Exception as e:
         err = True
         message = f"{inspect.stack()[0][3]}:: {str(e).strip()}"
