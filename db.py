@@ -18,8 +18,8 @@ def connect(alias):
                             TDS_Version="7.3", 
                             SERVER={
                                     "rainier": os.environ.get("DB_SERVER_RAINIER", ""), 
-                                    "rossby": os.environ.get("DB_SERVER_MARIANA", ""), 
-                                    "mariana": os.environ.get("DB_SERVER_ROSSBY", "")
+                                    "mariana": os.environ.get("DB_SERVER_MARIANA", ""), 
+                                    "rossby": os.environ.get("DB_SERVER_ROSSBY", "")
                                     }[alias], 
                             PORT=os.environ.get("DB_PORT", ""), 
                             DATABASE="Opedia", 
