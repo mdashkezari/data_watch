@@ -10,7 +10,7 @@ import pandas.io.sql as sql
 def connect(alias):
     try:
         conn = None
-        conn = pyodbc.connect(DRIVER="/usr/local/lib/libtdsodbc.so", 
+        conn = pyodbc.connect(DRIVER="/usr/lib/x86_64-linux-gnu/odbc/libtdsodbc.so", 
                             TDS_Version="7.3", 
                             server={
                                     "rainier": os.environ.get("DB_SERVER", ""), 
