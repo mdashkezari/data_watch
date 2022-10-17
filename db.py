@@ -7,31 +7,6 @@ import pandas.io.sql as sql
 
 
 
-# def connect(alias):
-#     try:
-#         if platform.system().lower().find("darwin") != -1:
-#             DRIVER = "/usr/local/lib/libtdsodbc.so"
-#         elif platform.system().lower().find("linux") != -1:     
-#             DRIVER = "/usr/lib/x86_64-linux-gnu/odbc/libtdsodbc.so"        
-#         conn = None
-#         conn = pyodbc.connect(DRIVER=DRIVER, 
-#                             TDS_Version="7.3", 
-#                             server={
-#                                     "rainier": os.environ.get("DB_SERVER_RAINIER", ""), 
-#                                     "rossby": os.environ.get("DB_SERVER_MARIANA", ""), 
-#                                     "mariana": os.environ.get("DB_SERVER_ROSSBY", "")
-#                                     }[alias], 
-#                             port=os.environ.get("DB_PORT", ""), 
-#                             DATABASE="Opedia", 
-#                             Uid=os.environ.get("DB_REST_USER", ""), 
-#                             Pwd=os.environ.get("DB_REST_USER_PASSWORD", "") 
-#                             )
-#     except Exception as e:
-#         print(f"Exception in connect: {str(e)}")    
-#     return conn
-
-
-
 def connect(alias):
     try:
         conn = None
@@ -39,29 +14,17 @@ def connect(alias):
             driver = "/usr/local/lib/libtdsodbc.so"
         elif platform.system().lower().find("linux") != -1:     
             driver = "/usr/lib/x86_64-linux-gnu/odbc/libtdsodbc.so"        
-
-        server = {
-                "rainier": os.environ.get("DB_SERVER_RAINIER", ""), 
-                "rossby": os.environ.get("DB_SERVER_MARIANA", ""), 
-                "mariana": os.environ.get("DB_SERVER_ROSSBY", "")
-                }[alias]
-        port = os.environ.get("DB_PORT", "")
-        uid = os.environ.get("DB_REST_USER", "")
-        pwd = os.environ.get("DB_REST_USER_PASSWORD", "") 
-
-        print("driver", driver)
-        print("server", server)
-        print("port", port)
-        print("uid", uid)
-        print("pwd", pwd)
-
         conn = pyodbc.connect(DRIVER=driver, 
                             TDS_Version="7.3", 
-                            SERVER=server, 
-                            PORT=port, 
+                            SERVER={
+                                    "rainier": os.environ.get("DB_SERVER_RAINIER", ""), 
+                                    "rossby": os.environ.get("DB_SERVER_MARIANA", ""), 
+                                    "mariana": os.environ.get("DB_SERVER_ROSSBY", "")
+                                    }[alias], 
+                            PORT=os.environ.get("DB_PORT", ""), 
                             DATABASE="Opedia", 
-                            Uid=uid, 
-                            Pwd=pwd
+                            Uid=os.environ.get("DB_REST_USER", ""), 
+                            Pwd=os.environ.get("DB_REST_USER_PASSWORD", "") 
                             )
     except Exception as e:
         print(f"Exception in connect: {str(e)}")    
