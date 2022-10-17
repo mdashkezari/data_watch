@@ -13,7 +13,7 @@ def connect(alias):
         conn = pyodbc.connect(DRIVER="/usr/lib/x86_64-linux-gnu/odbc/libtdsodbc.so", 
                             TDS_Version="7.3", 
                             server={
-                                    "rainier": os.environ.get("DB_SERVER", ""), 
+                                    "rainier": os.environ.get("DB_SERVER_RAINIER", ""), 
                                     "rossby": os.environ.get("DB_SERVER_MARIANA", ""), 
                                     "mariana": os.environ.get("DB_SERVER_ROSSBY", "")
                                     }[alias], 
