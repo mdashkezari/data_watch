@@ -6,7 +6,7 @@ from db import query
 
 
 
-__api_version__ = "0.1"
+__api_version__ = "0.2"
 
 
 tags_metadata = [

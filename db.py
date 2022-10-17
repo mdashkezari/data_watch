@@ -49,11 +49,11 @@ def connect(alias):
         uid = os.environ.get("DB_REST_USER", "")
         pwd = os.environ.get("DB_REST_USER_PASSWORD", "") 
 
-        print(driver)
-        print(server)
-        print(port)
-        print(uid)
-        print(pwd)
+        print("driver", driver)
+        print("server", server)
+        print("port", port)
+        print("uid", uid)
+        print("pwd", pwd)
 
         conn = pyodbc.connect(DRIVER=driver, 
                             TDS_Version="7.3", 
