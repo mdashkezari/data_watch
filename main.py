@@ -6,12 +6,17 @@ from routers import db_checks
 from settings import tags_metadata
 
 
-__api_version__ = "0.21"
+__api_version__ = "0.0.3"
 
 app = FastAPI(
               title="Simons CMAP Data Integrity API",
               description="TODO: CMAP Data Integrity description placeholder",
-              version=__api_version__ ,    
+              version=__api_version__ ,  
+              contact={
+                "name": "Mohammad D. Ashkezari",
+                "url": "https://simonscmap.org",
+                "email": "mdehghan@uw.edu",
+              },  
               openapi_tags=tags_metadata,
               openapi_url=f"/openapi.json",
               docs_url=f"/docs",

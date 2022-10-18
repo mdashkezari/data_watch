@@ -1,5 +1,16 @@
 import platform
+from pydantic import BaseModel
 
+
+class ResponseModel(BaseModel):
+    data: dict
+    message: str = ""
+    error: bool = False
+
+RESPONSE_MODEL_DESCIPTION = "The results are stored in the `data` field [JSON]. When an error occurs the `error` flag will `True` [Boolean]. Any message will be communicated using the `message` field [String]."
+
+
+SERVERS=["rainier", "rossby", "mariana"]
 
 SHORT_VAR_REGEX = r"^(?![0-9._])[a-zA-Z0-9_]+$"
 EXPORT_DIR = "/home/ubuntu/data_watch/"

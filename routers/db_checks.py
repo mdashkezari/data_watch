@@ -1,23 +1,25 @@
 
-from distutils.log import error
-from fastapi import APIRouter
+
+from fastapi import APIRouter, status, Response
+from typing import Optional, List
 import pandas as pd
 import inspect
+import language_tool_python
 
 # relative path imports
 import sys
 sys.path.append("..")
 from db import query
-
+from settings import tags_metadata, SERVERS, ResponseModel as RESMOD, RESPONSE_MODEL_DESCIPTION
+from common import get_datasets
 
 
 
 
 router = APIRouter(
                    prefix="/db",
-                   tags=["Ingested Data"]
+                   tags=[tags_metadata[1]["name"]]
                    )
-
 
 
 @router.get(
@@ -28,20 +30,23 @@ router = APIRouter(
             response_description=""
             )
 async def db_checks():
-    return "Database checks root"                   
+    return "Database check operations root"                   
+
 
 
 
 @router.get(
-            "/strandedtables", 
+            "/strandedTables", 
             tags=[], 
+            status_code=status.HTTP_200_OK,
             summary="Search for stranded tables in catalog",
             description="",
-            response_description=""
+            response_description=RESPONSE_MODEL_DESCIPTION,
+            response_model=RESMOD
             )
-async def stranded_tables():
+async def stranded_tables(response: Response):
     """
-    Return a list of table names that are mentioned in the catalog but they don't exist in the database.
+    Return a list of table names that are mentioned in the catalog but they don't exist in the database systems.
     """
     try:
         strandedTablesDF, msg, err = pd.DataFrame({}), "", False
@@ -56,11 +61,157 @@ async def stranded_tables():
         strandedTablesDF = pd.DataFrame({"Table": strandedTables})
         msg = "success"
     except Exception as e:
+        response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
         strandedTablesDF = pd.DataFrame({})
         msg = f"{inspect.stack()[0][3]}: {str(e).strip()}"   
         err = True
         print(msg)        
     return {"data": strandedTablesDF.to_dict(), "message": msg, "error": err}
+
+
+
+
+
+def vars_exist(table, vars, servers):
+    """
+    Check if `vars` exist in `table` on any database server.
+    Doesn't check if the table is on the designated server or not (using tbldataset_servers).
+    """
+    found = False
+    try:
+        sql = f"select top 5 lat,{vars} from {table}"
+        for server in servers:
+            df, msg, err = query(sql, servers=[server])
+            if err: continue
+            if len(df) > 0: found = True
+    except:
+        return None, None, None
+    return found, df, msg        
+
+
+
+
+@router.get(
+            "/strandedVariables", 
+            tags=[], 
+            status_code=status.HTTP_200_OK,
+            summary="Search for stranded variables in catalog",
+            description="",
+            response_description=RESPONSE_MODEL_DESCIPTION,
+            response_model=RESMOD
+            )
+async def stranded_variables(response: Response):
+    """
+    Return a list of variables names that are mentioned in the catalog but they don't exist in their associated table.
+    """
+    try:
+        strandedVarsDF, msg, err = pd.DataFrame({}), "", False
+        df, _, _ = query("SELECT Dataset_ID, Dataset_Name, Table_Name, STRING_AGG(CONVERT(NVARCHAR(max),CONCAT('[',Variable, ']')),',' ) Variable FROM dbo.udfCatalog() GROUP BY Table_Name, Dataset_ID, Dataset_Name ORDER by Dataset_ID DESC")
+        for index, row in df.iterrows():
+            print(f"checking for stranded vars in table ({index+1}/{len(df)}): {row.Table_Name} ...")
+            varsExist, _, _ = vars_exist(row["Table_Name"], row["Variable"], SERVERS)
+            if not varsExist:
+                for v in row["Variable"].split(","):
+                    vExist, _, msg = vars_exist(row["Table_Name"], v, SERVERS)
+                    if not vExist:
+                        rowDF = row.to_frame().T
+                        rowDF["Variable"] = v
+                        rowDF["Message"] = msg
+                        if len(strandedVarsDF ) < 1:
+                            strandedVarsDF = rowDF
+                        else:
+                            strandedVarsDF = pd.concat([strandedVarsDF, rowDF], ignore_index=True)   
+        msg = "success"
+    except Exception as e:
+        response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+        strandedVarsDF = pd.DataFrame({})
+        msg = f"{inspect.stack()[0][3]}: {str(e).strip()}"   
+        err = True
+        print(msg)        
+    return {"data": strandedVarsDF.to_dict(), "message": msg, "error": err}
+
+
+
+
+
+
+
+
+
+
+
+def language_check(lTool, dataset):
+    """
+    Detect grammar errors and spelling mistakes.
+    """
+    try:
+        results = pd.DataFrame()
+        matches = lTool.check(dataset["Description"])
+        for match in matches:
+            row = pd.DataFrame([{
+                "ruleID": match.ruleId,
+                "message": match.message,
+                "sentence": str(match.sentence),
+                "replacements": str(match.replacements),
+                "offsetInContext": str(match.offsetInContext),
+                "context": str(match.context),
+                "offset": str(match.offset),
+                "errorLength": str(match.errorLength),
+                "category": str(match.category),
+                "ruleIssueType": str(match.ruleIssueType)            
+            }])
+            results = pd.concat([results, row], ignore_index=True)
+
+        if len(results) > 0:    
+            results["Dataset_ID"] = dataset["ID"]
+            results["Dataset_Name"] = dataset["Dataset_Name"]
+            results["Dataset_Long_Name"] = dataset["Dataset_Long_Name"]    
+    except:
+        results = pd.DataFrame()
+    return results
+
+
+
+@router.get(
+            "/langDescription", 
+            tags=[], 
+            status_code=status.HTTP_200_OK,
+            summary="Spell/Grammar check on dataset descriptions",
+            description="",
+            response_description=RESPONSE_MODEL_DESCIPTION,
+            response_model=RESMOD
+            )
+async def stranded_variables(response: Response, dataset_name: Optional[str]=None):
+    """
+    Return a list of potential spell/grammar mistakes in dataset description text.\n 
+    `dataset_name` is the (short) name of the dataset to be chaecked. 
+    `dataset_name` is case-sensitive and must not contain blank space or special characters.
+    When `dataset_name` is not provided, the entire list of CMAP dataset descriptions are language-checked.\n \n
+    **Note**: This method tends to return a large number of false-positive signals, especially with the technical/scientific/jargon terms.
+    """
+    try:
+        dfCompiled, msg, err = pd.DataFrame({}), "", False
+        lTool = language_tool_python.LanguageTool('en-US')
+        datasets, _, _ = get_datasets()
+        if dataset_name is not None: datasets = datasets.query(f"Dataset_Name=='{dataset_name}'")
+        for _, row in datasets.iterrows():
+            print(f"checking dataset (ID {row.ID}): {row.Dataset_Name} ... \n---------------------")
+            checks = language_check(lTool, row)
+            if len(dfCompiled ) < 1:
+                dfCompiled = checks
+            else:
+                dfCompiled = pd.concat([dfCompiled, checks], ignore_index=True)        
+        lTool.close()
+        # dfCompiled.to_csv("./language_ckecks.csv", index=False)
+        msg = "success"
+    except Exception as e:
+        response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+        dfCompiled = pd.DataFrame({})
+        msg = f"{inspect.stack()[0][3]}: {str(e).strip()}"   
+        err = True
+        print(msg)        
+    return {"data": dfCompiled.to_dict(), "message": msg, "error": err}
+
 
 
 

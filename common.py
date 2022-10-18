@@ -7,6 +7,7 @@ from settings import EXPORT_DIR
 from db import query
 
 
+
 def make_dir(directory):
     """
     Creates a new directory if doesn't exist.
