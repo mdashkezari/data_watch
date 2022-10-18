@@ -19,7 +19,7 @@ from common import get_datasets, get_dataset_refs, dead_links, get_links
 
 router = APIRouter(
                    prefix="/db",
-                   tags=[tags_metadata[1]["name"]]
+                   tags=[tags_metadata[2]["name"]]
                    )
 
 

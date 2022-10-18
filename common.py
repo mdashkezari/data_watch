@@ -3,7 +3,7 @@ import language_tool_python
 import pandas as pd
 import requests
 import re
-from settings import EXPORT_DIR
+from settings import EXPORT_DIR, UPLOAD_DIR, EXCEL_DIR
 from db import query
 
 
@@ -22,6 +22,8 @@ def project_init():
     Steps at project stratup.
     """
     make_dir(EXPORT_DIR)
+    make_dir(UPLOAD_DIR)
+    make_dir(EXCEL_DIR)
     return
     
 

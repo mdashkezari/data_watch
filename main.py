@@ -1,9 +1,10 @@
 
-from urllib import response
+
 from fastapi import FastAPI
 from typing import Optional
-from routers import db_checks
+from routers import db_checks, excel_checks
 from settings import tags_metadata
+from common import project_init
 
 
 __api_version__ = "0.0.31"
@@ -25,18 +26,19 @@ app = FastAPI(
             #     "email": "mdehghan@uw.edu",
             #   },  
               openapi_tags=tags_metadata,
-              openapi_url=f"/openapi.json",
-              docs_url=f"/docs",
-              redoc_url=f"/redoc",
+              openapi_url=f"/dataapi.json",
+              docs_url=f"/try",
+              redoc_url=f"/docs",
             #   dependencies=[Depends(check_authentication_header)]
             )
 
-
+project_init()
+app.include_router(excel_checks.router)
 app.include_router(db_checks.router)
 
 
 
-@app.get("/", tags=["Root"], summary="Application root")
+@app.get("/", tags=["Root"], summary="API root")
 async def root():
     return "Simons CMAP Data Integrity API!"
 

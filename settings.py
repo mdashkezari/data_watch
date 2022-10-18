@@ -13,8 +13,10 @@ RESPONSE_MODEL_DESCIPTION = "The results are stored in the `data` field [JSON]. 
 SERVERS=["rainier", "rossby", "mariana"]
 
 SHORT_VAR_REGEX = r"^(?![0-9._])[a-zA-Z0-9_]+$"
-EXPORT_DIR = "/home/ubuntu/data_watch/"
+EXPORT_DIR = "./export/"
 EXCEL_DIR = "/path/to/excels/"
+UPLOAD_DIR = "./upload/"
+EXCEL_DIR = f"{UPLOAD_DIR}excel/"
 
 
 
@@ -27,8 +29,12 @@ tags_metadata = [
         "description": "System roots.",
     },
     {
-        "name": "Ingested Data",
-        "description": "Operations associated with data integrety checks at the database level.",
+        "name": "Pre Ingestion Checks",
+        "description": "Data validation operations for raw data.",
+    },
+    {
+        "name": "Post Ingestion Checks",
+        "description": "Data integrety and quality checks at the database level.",
     },
 #     {
 #         "name": "Upload",
