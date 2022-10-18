@@ -23,10 +23,20 @@ EXCEL_DIR = f"{UPLOAD_DIR}excel/"
 
 
 
+API_VERSION = "0.0.32"
+# for styling reasons avoid multi-line text
+API_DESCRIPTION = "Simons CMAP collects heterogenous marine datasets from a wide array of public data sources and "
+API_DESCRIPTION += "curate and harmonize them into a unified data model. "
+API_DESCRIPTION += "The processed data is then ingested into a database layer where it is exposed to the users. "
+API_DESCRIPTION += "The Data Integrity API provides utility functions for data validation and database integrity checks. "
+API_DESCRIPTION += "This API is intended to be used everywhere within the Simons CMAP data pipeline; pre and post ingestion. "
+API_DESCRIPTION += "Also, data producers who are planning to submit their data to Simons CMAP are welcome to validate their data before submission."
+
+
 tags_metadata = [
     {
         "name": "Root",
-        "description": "System roots.",
+        "description": "API root.",
     },
     {
         "name": "Pre Ingestion Checks",

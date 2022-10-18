@@ -3,23 +3,16 @@
 from fastapi import FastAPI
 from typing import Optional
 from routers import db_checks, excel_checks
-from settings import tags_metadata
+from settings import tags_metadata, API_VERSION, API_DESCRIPTION
 from common import project_init
 
 
-__api_version__ = "0.0.31"
+
 
 app = FastAPI(
               title="Simons CMAP Data Integrity API",
-              description="""Simons CMAP collects heterogenous marine datasets from a wide array of public data sources and 
-                             curate and harmonize them into a unified data model. 
-                             The processed data is then ingested into a database layer where it is exposed to the users. 
-                             The Data Integrity API provides utility functions for data validation and database integrity checks. 
-                             This API is intended to be used everywhere within the Simons CMAP data pipeline; pre and post ingestion.
-                             Also, data producers who are planning to submit their data to Simons CMAP are welcome to validate their data 
-                             before submission.
-                             """,
-              version=__api_version__ ,  
+              description=API_DESCRIPTION,
+              version=API_VERSION ,  
             #   contact={
             #     "name": "Mohammad D. Ashkezari",
             #     "url": "https://simonscmap.org",
@@ -40,7 +33,7 @@ app.include_router(db_checks.router)
 
 @app.get("/", tags=["Root"], summary="API root")
 async def root():
-    return "Simons CMAP Data Integrity API!"
+    return API_DESCRIPTION.replace('\n', ' ').replace('\r', '')
 
 
 

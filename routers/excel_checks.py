@@ -47,7 +47,10 @@ def upload_file(
     for chunk in file.file:
         real_file_size += len(chunk)
         if real_file_size > file_size:
-            raise HTTPException(status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE, detail="File too large")
+            raise HTTPException(
+                                status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE, 
+                                detail="File too large"
+                                )
         temp.write(chunk)
     temp.close()
     excelFName = f"{EXCEL_DIR}{file.filename}"
