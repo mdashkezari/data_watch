@@ -16,7 +16,8 @@ from settings import tags_metadata, EXCEL_DIR
 
  
 
-async def valid_content_length(content_length: int = Header(..., lt=100_000_000)):
+# async def valid_content_length(content_length: int = Header(..., lt=100_000_000)):
+async def valid_content_length(content_length: int = Header(10)):
     return content_length
 
 
@@ -38,7 +39,9 @@ def upload_file(
                 file: UploadFile = File(...), 
                 file_size: int = Depends(valid_content_length)
                 ):         
-    ## see https://github.com/tiangolo/fastapi/issues/362                
+    ## see https://github.com/tiangolo/fastapi/issues/362  
+
+           
     real_file_size = 0
     temp: IO = NamedTemporaryFile(delete=False)
     for chunk in file.file:
