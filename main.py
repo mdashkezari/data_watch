@@ -6,17 +6,24 @@ from routers import db_checks
 from settings import tags_metadata
 
 
-__api_version__ = "0.0.3"
+__api_version__ = "0.0.31"
 
 app = FastAPI(
               title="Simons CMAP Data Integrity API",
-              description="TODO: CMAP Data Integrity description placeholder",
+              description="""Simons CMAP collects heterogenous marine datasets from a wide array of public data sources and 
+                             curate and harmonize them into a unified data model. 
+                             The processed data is then ingested into a database layer where it is exposed to the users. 
+                             The Data Integrity API provides utility functions for data validation and database integrity checks. 
+                             This API is intended to be used everywhere within the Simons CMAP data pipeline; pre and post ingestion.
+                             Also, data producers who are planning to submit their data to Simons CMAP are welcome to validate their data 
+                             before submission.
+                             """,
               version=__api_version__ ,  
-              contact={
-                "name": "Mohammad D. Ashkezari",
-                "url": "https://simonscmap.org",
-                "email": "mdehghan@uw.edu",
-              },  
+            #   contact={
+            #     "name": "Mohammad D. Ashkezari",
+            #     "url": "https://simonscmap.org",
+            #     "email": "mdehghan@uw.edu",
+            #   },  
               openapi_tags=tags_metadata,
               openapi_url=f"/openapi.json",
               docs_url=f"/docs",

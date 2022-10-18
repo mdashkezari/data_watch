@@ -11,7 +11,8 @@ import sys
 sys.path.append("..")
 from db import query
 from settings import tags_metadata, SERVERS, ResponseModel as RESMOD, RESPONSE_MODEL_DESCIPTION
-from common import get_datasets
+from common import get_datasets, get_dataset_refs, dead_links, get_links
+
 
 
 
@@ -134,12 +135,6 @@ async def stranded_variables(response: Response):
 
 
 
-
-
-
-
-
-
 def language_check(lTool, dataset):
     """
     Detect grammar errors and spelling mistakes.
@@ -181,7 +176,7 @@ def language_check(lTool, dataset):
             response_description=RESPONSE_MODEL_DESCIPTION,
             response_model=RESMOD
             )
-async def stranded_variables(response: Response, dataset_name: Optional[str]=None):
+async def language_check(response: Response, dataset_name: Optional[str]=None):
     """
     Return a list of potential spell/grammar mistakes in dataset description text.\n 
     `dataset_name` is the (short) name of the dataset to be chaecked. 
@@ -214,4 +209,67 @@ async def stranded_variables(response: Response, dataset_name: Optional[str]=Non
 
 
 
+
+
+
+
+@router.get(
+            "/deadLinks", 
+            tags=[], 
+            status_code=status.HTTP_200_OK,
+            summary="Look for dead links in dataset metadata",
+            description="",
+            response_description=RESPONSE_MODEL_DESCIPTION,
+            response_model=RESMOD
+            )
+async def dead_links_check(response: Response, dataset_name: Optional[str]="Mercator_Pisces_Biogeochem_Climatology"):
+    """
+    Return a list of dead links in dataset description, data_source, distributor and references. 
+    Links that resolve in status codes >= 400 and <503 are considered 'dead links'. Currently, I cannot find a definitive solution to identify 
+    redirected links that do not return the intended page (example: removed CMEMS datasets).\n 
+    `dataset_name` is the (short) name of the dataset to be chaecked. 
+    `dataset_name` is case-sensitive and must not contain blank space or special characters.
+    When `dataset_name` is not provided, the entire list of CMAP datasets is searched for dead links.\n \n
+    """
+    try:
+        dfCompiled, msg, err = pd.DataFrame({}), "", False
+        datasets, _, _ = get_datasets()
+        refs, _, _ = get_dataset_refs()
+        if dataset_name is not None: 
+            datasets = datasets.query(f"Dataset_Name=='{dataset_name}'")
+            refs = refs.query(f"Dataset_Name=='{dataset_name}'")
+
+        for index, row in datasets.iterrows():
+            print(f"looking for dead links in dataset ({index+1}/{len(datasets)}): {row.Dataset_Name}")
+            dlDF = pd.DataFrame()
+            dlDF = dead_links(get_links(row["Data_Source"]), dlDF)
+            dlDF = dead_links(get_links(row["Distributor"]), dlDF)
+            dlDF = dead_links(get_links(row["Description"]), dlDF)
+
+            # dead links in dataset refrences    
+            dsRefs = refs.query(f"ID=={row.ID}")
+            for _, refRow in dsRefs.iterrows():
+                dlDF = dead_links(get_links(refRow["Reference"]), dlDF)
+
+            if len(dlDF) > 0:
+                dlDF["ID"] = row["ID"]
+                dlDF["Dataset_Name"] = row["Dataset_Name"]
+                dlDF["Dataset_Long_Name"] = row["Dataset_Long_Name"]
+                if len(dfCompiled ) < 1:
+                    dfCompiled = dlDF
+                else:
+                    dfCompiled = pd.concat([dfCompiled, dlDF], ignore_index=True)    
+        # dfCompiled.to_csv("./dead_links.csv", index=False)
+        msg = "success"
+    except Exception as e:
+        response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+        dfCompiled = pd.DataFrame({})
+        msg = f"{inspect.stack()[0][3]}: {str(e).strip()}"   
+        err = True
+        print(msg)        
+    return {"data": dfCompiled.to_dict(), "message": msg, "error": err}
+
+
+
+        
 
