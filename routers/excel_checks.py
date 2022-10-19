@@ -40,7 +40,6 @@ def get_sheets(path):
         print(str(e))  
         varsDF = pd.DataFrame({})
 
-    print(dataDF, datasetDF, varsDF)  
     print(")))))))))))))))))")  
     print(len(dataDF), len(datasetDF), len(varsDF))    
     return dataDF, datasetDF, varsDF
