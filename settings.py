@@ -24,7 +24,7 @@ print(EXCEL_DIR)
 
 
 
-API_VERSION = "0.0.37"
+API_VERSION = "0.0.38"
 # for styling reasons avoid multi-line text
 API_DESCRIPTION = "Simons CMAP collects heterogenous marine datasets from a wide array of public data sources and "
 API_DESCRIPTION += "curate and harmonize them into a unified data model. "

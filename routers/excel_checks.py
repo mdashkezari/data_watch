@@ -26,16 +26,23 @@ def get_sheets(path):
     print(path)
     try:
         dataDF = pd.read_excel(path, sheet_name="data")
-    except:
+    except Exception as e:
+        print(str(e))  
         dataDF = pd.DataFrame({})
     try:
         datasetDF = pd.read_excel(path, sheet_name="dataset_meta_data")
-    except:
+    except Exception as e:
+        print(str(e))  
         datasetDF = pd.DataFrame({})
     try:
         varsDF = pd.read_excel(path, sheet_name="vars_meta_data")
-    except:  
+    except Exception as e:
+        print(str(e))  
         varsDF = pd.DataFrame({})
+
+    print(dataDF, datasetDF, varsDF)  
+    print(")))))))))))))))))")  
+    print(len(dataDF), len(datasetDF), len(varsDF))    
     return dataDF, datasetDF, varsDF
 
 
