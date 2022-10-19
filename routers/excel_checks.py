@@ -22,8 +22,6 @@ from common import make_dir, project_init, language_check, dead_links, get_links
 
 
 def get_sheets(path):
-    print("PPPPPPPPPPPPPPP")
-    print(path)
     try:
         dataDF = pd.read_excel(path, sheet_name="data")
     except Exception as e:
@@ -39,9 +37,6 @@ def get_sheets(path):
     except Exception as e:
         print(str(e))  
         varsDF = pd.DataFrame({})
-
-    print(")))))))))))))))))")  
-    print(len(dataDF), len(datasetDF), len(varsDF))    
     return dataDF, datasetDF, varsDF
 
 
