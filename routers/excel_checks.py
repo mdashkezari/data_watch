@@ -15,7 +15,7 @@ from http import HTTPStatus
 # relative path imports
 import sys
 sys.path.append("..")
-from settings import tags_metadata, EXCEL_DIR, EXPORT_DIR, SHORT_VAR_REGEX, ResponseModel as RESMOD, RESPONSE_MODEL_DESCIPTION
+from settings import API_VERSION, tags_metadata, EXCEL_DIR, EXPORT_DIR, SHORT_VAR_REGEX, ResponseModel as RESMOD, RESPONSE_MODEL_DESCIPTION
 from common import make_dir, project_init, language_check, dead_links, get_links, find_cruise
 
  
@@ -320,7 +320,8 @@ async def upload_file(
                      "cruise": cruise,
                      }, 
             "message": msg, 
-            "error": err
+            "error": err,
+            "version": API_VERSION
             }
     # return FileResponse(excelFName)  
     # return FileResponse(excelFName, media_type="video/mp4")  
@@ -341,4 +342,5 @@ async def upload_file(
 # to do:
 # keywords
 # upload file type/size check
+# no need to save excel/csv files
 

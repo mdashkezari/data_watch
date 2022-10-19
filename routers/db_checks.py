@@ -10,7 +10,7 @@ import language_tool_python
 import sys
 sys.path.append("..")
 from db import query
-from settings import tags_metadata, SERVERS, ResponseModel as RESMOD, RESPONSE_MODEL_DESCIPTION
+from settings import API_VERSION, tags_metadata, SERVERS, ResponseModel as RESMOD, RESPONSE_MODEL_DESCIPTION
 from common import get_datasets, get_dataset_refs, dead_links, get_links
 
 
@@ -67,7 +67,7 @@ async def stranded_tables(response: Response):
         msg = f"{inspect.stack()[0][3]}: {str(e).strip()}"   
         err = True
         print(msg)        
-    return {"data": strandedTablesDF.to_dict(), "message": msg, "error": err}
+    return {"data": strandedTablesDF.to_dict(), "message": msg, "error": err, "version": API_VERSION}
 
 
 
@@ -129,7 +129,7 @@ async def stranded_variables(response: Response):
         msg = f"{inspect.stack()[0][3]}: {str(e).strip()}"   
         err = True
         print(msg)        
-    return {"data": strandedVarsDF.to_dict(), "message": msg, "error": err}
+    return {"data": strandedVarsDF.to_dict(), "message": msg, "error": err, "version": API_VERSION}
 
 
 
@@ -205,7 +205,7 @@ async def language_check(response: Response, dataset_name: Optional[str]=None):
         msg = f"{inspect.stack()[0][3]}: {str(e).strip()}"   
         err = True
         print(msg)        
-    return {"data": dfCompiled.to_dict(), "message": msg, "error": err}
+    return {"data": dfCompiled.to_dict(), "message": msg, "error": err, "version": API_VERSION}
 
 
 
@@ -267,7 +267,7 @@ async def dead_links_check(response: Response, dataset_name: Optional[str]="Merc
         msg = f"{inspect.stack()[0][3]}: {str(e).strip()}"   
         err = True
         print(msg)        
-    return {"data": dfCompiled.to_dict(), "message": msg, "error": err}
+    return {"data": dfCompiled.to_dict(), "message": msg, "error": err, "version": API_VERSION}
 
 
 
