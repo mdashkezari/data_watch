@@ -259,7 +259,7 @@ router = APIRouter(
             response_description=RESPONSE_MODEL_DESCIPTION,
             response_model=RESMOD
             )
-async def upload_file(
+def upload_file(
                 response: Response,
                 file: UploadFile = File(...), 
                 file_size: int = Depends(valid_content_length)
