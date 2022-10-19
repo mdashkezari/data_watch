@@ -1,4 +1,4 @@
-import platform
+import os
 from pydantic import BaseModel
 
 
@@ -10,12 +10,12 @@ class ResponseModel(BaseModel):
 RESPONSE_MODEL_DESCIPTION = "The results are stored in the `data` field [JSON]. When an error occurs the `error` flag will `True` [Boolean]. Any message will be communicated using the `message` field [String]."
 
 
+HOME = f"{os.path.realpath(os.path.dirname(__file__))}/"
 SERVERS=["rainier", "rossby", "mariana"]
 
 SHORT_VAR_REGEX = r"^(?![0-9._])[a-zA-Z0-9_]+$"
-EXPORT_DIR = "./export/"
-EXCEL_DIR = "/path/to/excels/"
-UPLOAD_DIR = "./upload/"
+EXPORT_DIR = f"{HOME}export/"
+UPLOAD_DIR = f"{HOME}upload/"
 EXCEL_DIR = f"{UPLOAD_DIR}excel/"
 
 
@@ -23,7 +23,8 @@ EXCEL_DIR = f"{UPLOAD_DIR}excel/"
 
 
 
-API_VERSION = "0.0.35"
+
+API_VERSION = "0.0.36"
 # for styling reasons avoid multi-line text
 API_DESCRIPTION = "Simons CMAP collects heterogenous marine datasets from a wide array of public data sources and "
 API_DESCRIPTION += "curate and harmonize them into a unified data model. "

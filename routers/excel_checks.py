@@ -259,7 +259,7 @@ router = APIRouter(
             response_description=RESPONSE_MODEL_DESCIPTION,
             response_model=RESMOD
             )
-def upload_file(
+async def upload_file(
                 response: Response,
                 file: UploadFile = File(...), 
                 file_size: int = Depends(valid_content_length)
@@ -288,22 +288,14 @@ def upload_file(
             EXPORT_EXCEL_DIR = f"{EXPORT_DIR}{basename}/"
             make_dir(EXPORT_EXCEL_DIR)
             shutil.copy(excelFN, EXPORT_EXCEL_DIR)
-            print("1:::::::::::::::")
             varSchemaCases = validate_schema(varSchema, varsDF, exportPath=f"{EXPORT_EXCEL_DIR}var_schema.csv")        
-            print("2:::::::::::::::")
             # just pass the first row of the dataset_meta_data    
             datasetSchemaCases = validate_schema(datasetSchema, datasetDF.head(1), exportPath=f"{EXPORT_EXCEL_DIR}dataset_schema.csv")       
-            print("3:::::::::::::::")
             dataSchemaCases = validate_schema(dataSchema, dataDF, exportPath=f"{EXPORT_EXCEL_DIR}data_schema.csv")
-            print("4:::::::::::::::")
             cvdv = cross_validate_data_vars(dataDF, varsDF, exportPath=f"{EXPORT_EXCEL_DIR}cross_validate_data_vars.csv")        
-            print("5:::::::::::::::")
             lang = lang_datasetDF(datasetDF.head(1), exportPath=f"{EXPORT_EXCEL_DIR}lang.csv")
-            print("6:::::::::::::::")
             dl = dead_links_datasetDF(datasetDF, exportPath=f"{EXPORT_EXCEL_DIR}dead_links.csv")
-            print("7:::::::::::::::")
             cruise = check_cruises(datasetDF, dataDF, exportPath=f"{EXPORT_EXCEL_DIR}cruise.csv")
-            print("8:::::::::::::::")
     except Exception as e:
         response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
         datasetSchemaCases = {}
