@@ -11,14 +11,19 @@ from tempfile import NamedTemporaryFile
 import shutil
 from http import HTTPStatus
 
-
 # relative path imports
 import sys
 sys.path.append("..")
 from settings import API_VERSION, tags_metadata, EXCEL_DIR, EXPORT_DIR, SHORT_VAR_REGEX, ResponseModel as RESMOD, RESPONSE_MODEL_DESCIPTION
-from common import make_dir, project_init, language_check, dead_links, get_links, find_cruise
+from common import make_dir, find_cruise
 
- 
+sys.path.append("../utils") 
+from utils.utils_dead_links import dead_links, get_links
+from utils.utils_lang import language_check
+
+
+
+
 
 
 def get_sheets(path):
@@ -125,10 +130,13 @@ dataSchema = DataFrameSchema(
 
 
 
-def cross_validate_data_vars(dataDF, varsDF, exportPath=""):
+def cross_validate_data_vars(dataDF, varsDF, datasetDF, exportPath=""):
     """
     check the variables listed in the vars-meta_data sheet exist in data sheet and vice-versa.
     """
+    def kw_msg(variable, context, value):
+        return f"add keyword to {variable} [{context}]: {value}"
+
     failure_case = []
     try:
         print(f"\tcross-validating data sheet vs vars sheet")
@@ -144,6 +152,26 @@ def cross_validate_data_vars(dataDF, varsDF, exportPath=""):
             failure_case.append(f"{notInData} defined in vars_meta_data sheet but not found the data sheet.")
         if len(notInVars) > 0:    
             failure_case.append(f"{notInVars} are variable columns in the data sheet but not defined in the vars_meta_data sheet.")
+
+       #keyword suggestions
+        cruiseNames = []
+        if "cruise_names" in list(datasetDF.columns): cruiseNames = datasetDF["cruise_names"].values
+        for _, row in datasetDF.head(1).iterrows(): 
+            dshort, dlong, make, distributor, source, ack = row["dataset_short_name"], row["dataset_long_name"], row["dataset_make"], row["dataset_distributor"], row["dataset_source"], row["dataset_acknowledgement"]
+        for _, row in varsDF.iterrows():  
+            kws, sensor, vlong, vshort = row["var_keywords"], row["var_sensor"], row["var_long_name"], row["var_short_name"]
+            if kws.find(sensor) == -1: failure_case.append(kw_msg(vshort, "sensor", sensor))
+            if kws.find(vlong) == -1: failure_case.append(kw_msg(vshort, "var long name", vlong))
+            if kws.find(vshort) == -1: failure_case.append(kw_msg(vshort, "var short name", vshort))
+            if kws.find(dshort) == -1: failure_case.append(kw_msg(vshort, "dataset short name", dshort))
+            if kws.find(dlong) == -1: failure_case.append(kw_msg(vshort, "dataset long name", dlong))
+            if kws.find(make) == -1: failure_case.append(kw_msg(vshort, "dataset make", make))
+            if kws.find(distributor) == -1: failure_case.append(kw_msg(vshort, "dataset distributor", distributor))
+            if kws.find(source) == -1: failure_case.append(kw_msg(vshort, "dataset source", source))
+            if kws.find(ack) == -1: failure_case.append(kw_msg(vshort, "dataset acknowledgement", ack))
+            for cruise in cruiseNames:
+                if kws.find(cruise) == -1: failure_case.append(kw_msg(vshort, "cruise name", cruise))
+
     except Exception as e:
         failure_case.append(str(e))
     errDF = pd.DataFrame({"failure_case": failure_case})    
@@ -257,7 +285,7 @@ router = APIRouter(
             "/", 
             tags=[], 
             status_code=HTTPStatus.ACCEPTED,
-            summary="Submit raw dataset in excel template format",
+            summary="Check raw dataset in excel template format",
             description="",
             response_description=RESPONSE_MODEL_DESCIPTION,
             response_model=RESMOD
@@ -295,10 +323,13 @@ async def upload_file(
             # just pass the first row of the dataset_meta_data    
             datasetSchemaCases = validate_schema(datasetSchema, datasetDF.head(1), exportPath=f"{EXPORT_EXCEL_DIR}dataset_schema.csv")       
             dataSchemaCases = validate_schema(dataSchema, dataDF, exportPath=f"{EXPORT_EXCEL_DIR}data_schema.csv")
-            cvdv = cross_validate_data_vars(dataDF, varsDF, exportPath=f"{EXPORT_EXCEL_DIR}cross_validate_data_vars.csv")        
+            cvdv = cross_validate_data_vars(dataDF, varsDF, datasetDF, exportPath=f"{EXPORT_EXCEL_DIR}cross_validate_data_vars.csv")        
             lang = lang_datasetDF(datasetDF.head(1), exportPath=f"{EXPORT_EXCEL_DIR}lang.csv")
             dl = dead_links_datasetDF(datasetDF, exportPath=f"{EXPORT_EXCEL_DIR}dead_links.csv")
             cruise = check_cruises(datasetDF, dataDF, exportPath=f"{EXPORT_EXCEL_DIR}cruise.csv")
+
+        # delete the directory and its contents    
+        shutil.rmtree(EXPORT_EXCEL_DIR) 
     except Exception as e:
         response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
         datasetSchemaCases = {}
@@ -340,7 +371,5 @@ async def upload_file(
 
 
 # to do:
-# keywords
 # upload file type/size check
-# no need to save excel/csv files
 

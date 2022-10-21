@@ -10,10 +10,11 @@ import language_tool_python
 import sys
 sys.path.append("..")
 from db import query
-from settings import API_VERSION, tags_metadata, SERVERS, ResponseModel as RESMOD, RESPONSE_MODEL_DESCIPTION
-from common import get_datasets, get_dataset_refs, dead_links, get_links
+from settings import API_VERSION, DB_DESCRIPTION, tags_metadata, SERVERS, ResponseModel as RESMOD, RESPONSE_MODEL_DESCIPTION
+from common import get_datasets, get_dataset_refs
 
-
+sys.path.append("../utils") 
+from utils.utils_dead_links import dead_links, get_links
 
 
 
@@ -23,17 +24,18 @@ router = APIRouter(
                    )
 
 
+
 @router.get(
             "/", 
             tags=[], 
             summary="Database checks root",
             description="",
-            response_description=""
+            response_description=RESPONSE_MODEL_DESCIPTION,
+            response_model=RESMOD
             )
 async def db_checks():
-    return "Database check operations root"                   
-
-
+    return {"data": {}, "message":  DB_DESCRIPTION, "error": False, "version": API_VERSION}
+                      
 
 
 @router.get(
@@ -68,7 +70,6 @@ async def stranded_tables(response: Response):
         err = True
         print(msg)        
     return {"data": strandedTablesDF.to_dict(), "message": msg, "error": err, "version": API_VERSION}
-
 
 
 

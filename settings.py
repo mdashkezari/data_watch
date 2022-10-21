@@ -16,7 +16,8 @@ EXCEL_DIR = f"{UPLOAD_DIR}excel/"
 
 
 
-API_VERSION = "0.0.41"
+API_VERSION = "0.0.42"
+
 # for styling reasons avoid multi-line text
 API_DESCRIPTION = "Simons CMAP collects heterogenous marine datasets from a wide array of public data sources and "
 API_DESCRIPTION += "curate and harmonize them into a unified data model. "
@@ -26,6 +27,8 @@ API_DESCRIPTION += "This API is intended to be used everywhere within the Simons
 API_DESCRIPTION += "Also, data producers who are planning to submit their data to Simons CMAP are welcome to validate their data before submission."
 
 
+DB_DESCRIPTION = "Database objects may evolve over time in a way that is not consistent with the initial intended integrity plans. "
+DB_DESCRIPTION += "This route exposes methods that are critical in maintaining the database performance and integrity."
 
 
 class ResponseModel(BaseModel):
