@@ -1,9 +1,11 @@
-import glob, shutil, inspect
+from ast import Str
+import glob, shutil, inspect, random
 from pathlib import Path
 import pandas as pd
 import pandera as pa
 from pandera import Column, DataFrameSchema, Check
 from typing import IO
+from enum import Enum
 from fastapi import Response, APIRouter, File, Header, Depends, UploadFile, HTTPException
 from fastapi.responses import FileResponse
 from starlette import status
@@ -14,7 +16,7 @@ from http import HTTPStatus
 # relative path imports
 import sys
 sys.path.append("..")
-from settings import API_VERSION, tags_metadata, EXCEL_DIR, EXPORT_DIR, SHORT_VAR_REGEX, ResponseModel as RESMOD, RESPONSE_MODEL_DESCIPTION
+from settings import API_VERSION, tags_metadata, UPLOAD_EXCEL_DIR, EXPORT_DIR, SHORT_VAR_REGEX, ResponseModel as RESMOD, RESPONSE_MODEL_DESCIPTION
 from common import make_dir, find_cruise
 
 sys.path.append("../utils") 
@@ -280,9 +282,12 @@ router = APIRouter(
                    tags=[tags_metadata[1]["name"]]
                    )
 
+class respTypes(str, Enum):
+    zip = "zip"
+    json = "json"
 
 @router.post(
-            "/", 
+            "/{respType}", 
             tags=[], 
             status_code=HTTPStatus.ACCEPTED,
             summary="Check raw dataset in excel template format",
@@ -291,32 +296,27 @@ router = APIRouter(
             response_model=RESMOD
             )
 async def upload_file(
+                respType: respTypes,
                 response: Response,
                 file: UploadFile = File(...), 
-                file_size: int = Depends(valid_content_length)
                 ):         
     try:            
-        ## see https://github.com/tiangolo/fastapi/issues/362  
         msg, err = "", False
-        real_file_size = 0
-        temp: IO = NamedTemporaryFile(delete=False)
-        for chunk in file.file:
-            real_file_size += len(chunk)
-            if real_file_size > file_size:
-                raise HTTPException(
-                                    status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE, 
-                                    detail="File too large"
-                                    )
-            temp.write(chunk)
-        temp.close()
-        excelFName = f"{EXCEL_DIR}{file.filename}"
-        shutil.move(temp.name, excelFName)
-        excelFiles = [excelFName]
+        uploadID = random.randint(1000, 999999999)
+        make_dir(EXPORT_DIR)
+        make_dir(UPLOAD_EXCEL_DIR)
+        RAND_UPLOAD_EXCEL_DIR = f"{UPLOAD_EXCEL_DIR}{uploadID}/"
+        make_dir(RAND_UPLOAD_EXCEL_DIR)
+        uploadedExcelFName = f"{RAND_UPLOAD_EXCEL_DIR}{file.filename}"
+        with open(uploadedExcelFName, "w+b") as buffer: shutil.copyfileobj(file.file, buffer)            
+        excelFiles = [uploadedExcelFName]
         for index, excelFN in enumerate(excelFiles):
             print(f"checking excel file ({index+1}/{len(excelFiles)}): {excelFN}")
             dataDF, datasetDF, varsDF = get_sheets(f"{excelFN}")    
             basename = Path(excelFN).stem
-            EXPORT_EXCEL_DIR = f"{EXPORT_DIR}{basename}/"
+            RAND_EXPORT_EXCEL_DIR = f"{EXPORT_DIR}{uploadID}/"
+            make_dir(RAND_EXPORT_EXCEL_DIR)
+            EXPORT_EXCEL_DIR = f"{RAND_EXPORT_EXCEL_DIR}{basename}/"
             make_dir(EXPORT_EXCEL_DIR)
             shutil.copy(excelFN, EXPORT_EXCEL_DIR)
             varSchemaCases = validate_schema(varSchema, varsDF, exportPath=f"{EXPORT_EXCEL_DIR}var_schema.csv")        
@@ -324,12 +324,16 @@ async def upload_file(
             datasetSchemaCases = validate_schema(datasetSchema, datasetDF.head(1), exportPath=f"{EXPORT_EXCEL_DIR}dataset_schema.csv")       
             dataSchemaCases = validate_schema(dataSchema, dataDF, exportPath=f"{EXPORT_EXCEL_DIR}data_schema.csv")
             cvdv = cross_validate_data_vars(dataDF, varsDF, datasetDF, exportPath=f"{EXPORT_EXCEL_DIR}cross_validate_data_vars.csv")        
-            lang = lang_datasetDF(datasetDF.head(1), exportPath=f"{EXPORT_EXCEL_DIR}lang.csv")
+            # lang = lang_datasetDF(datasetDF.head(1), exportPath=f"{EXPORT_EXCEL_DIR}lang.csv")
+            lang = {}
             dl = dead_links_datasetDF(datasetDF, exportPath=f"{EXPORT_EXCEL_DIR}dead_links.csv")
             cruise = check_cruises(datasetDF, dataDF, exportPath=f"{EXPORT_EXCEL_DIR}cruise.csv")
-
-        # delete the directory and its contents    
-        shutil.rmtree(EXPORT_EXCEL_DIR) 
+        zipFN = f"{EXPORT_DIR}{basename}_{uploadID}"
+        shutil.make_archive(zipFN, "zip", EXPORT_EXCEL_DIR)
+        zipFN += ".zip"
+        shutil.rmtree(RAND_UPLOAD_EXCEL_DIR) 
+        shutil.rmtree(RAND_EXPORT_EXCEL_DIR) 
+        msg = "success"
     except Exception as e:
         response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
         datasetSchemaCases = {}
@@ -340,22 +344,23 @@ async def upload_file(
         cruise = {}
         msg = f"{inspect.stack()[0][3]}: {str(e).strip()}"   
         err = True
-        print(msg)        
-    return {"data": {
-                     "data_schema": dataSchemaCases,
-                     "dataset_schema": datasetSchemaCases,
-                     "var_schema": varSchemaCases,
-                     "data_vars": cvdv,
-                     "lang_dataset": lang,
-                     "dead_links": dl,
-                     "cruise": cruise,
-                     }, 
-            "message": msg, 
-            "error": err,
-            "version": API_VERSION
-            }
-    # return FileResponse(excelFName)  
-    # return FileResponse(excelFName, media_type="video/mp4")  
+        print(msg)     
+    if respType.lower() == "zip" and not err:   
+        return FileResponse(zipFN, media_type="application/zip")  
+    else:    
+        return {"data": {
+                        "data_schema": dataSchemaCases,
+                        "dataset_schema": datasetSchemaCases,
+                        "var_schema": varSchemaCases,
+                        "data_vars": cvdv,
+                        "lang_dataset": lang,
+                        "dead_links": dl,
+                        "cruise": cruise,
+                        }, 
+                "message": msg, 
+                "error": err,
+                "version": API_VERSION
+                }
 
 
 

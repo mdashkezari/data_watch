@@ -12,11 +12,11 @@ SERVERS=["rainier", "rossby", "mariana"]
 SHORT_VAR_REGEX = r"^(?![0-9._])[a-zA-Z0-9_]+$"
 EXPORT_DIR = f"{HOME}export/"
 UPLOAD_DIR = f"{HOME}upload/"
-EXCEL_DIR = f"{UPLOAD_DIR}excel/"
+UPLOAD_EXCEL_DIR = f"{UPLOAD_DIR}excel/"
 
 
 
-API_VERSION = "0.0.42"
+API_VERSION = "0.0.43"
 
 # for styling reasons avoid multi-line text
 API_DESCRIPTION = "Simons CMAP collects heterogenous marine datasets from a wide array of public data sources and "

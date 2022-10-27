@@ -1,5 +1,5 @@
 import os
-from settings import EXPORT_DIR, UPLOAD_DIR, EXCEL_DIR
+from settings import EXPORT_DIR, UPLOAD_DIR, UPLOAD_EXCEL_DIR
 from db import query
 
 
@@ -19,7 +19,7 @@ def project_init():
     """
     make_dir(EXPORT_DIR)
     make_dir(UPLOAD_DIR)
-    make_dir(EXCEL_DIR)
+    make_dir(UPLOAD_EXCEL_DIR)
     return
     
 
