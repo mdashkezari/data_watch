@@ -1,6 +1,7 @@
 
 
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from typing import Optional
 from routers import db_checks, excel_checks
 from settings import RESPONSE_MODEL_DESCIPTION, tags_metadata, API_VERSION, API_DESCRIPTION
@@ -24,6 +25,19 @@ app = FastAPI(
               swagger_ui_parameters={"defaultModelsExpandDepth": -1},
             #   dependencies=[Depends(check_authentication_header)],
             )
+
+
+
+
+# app.add_middleware(
+#     CORSMiddleware,
+#     allow_origins=["*"],
+#     allow_credentials=True,
+#     allow_methods=["*"],
+#     allow_headers=["*"],
+# )
+
+
 
 project_init()
 app.include_router(excel_checks.router)
