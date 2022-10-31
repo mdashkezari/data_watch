@@ -13,11 +13,11 @@ app = FastAPI(
               title="Simons CMAP Data Integrity API",
               description=API_DESCRIPTION,
               version=API_VERSION,  
-              contact={
-                "name": "Mohammad D. Ashkezari",
-                # "url": "https://simonscmap.org",
-                "email": "mdehghan@uw.edu",
-              },  
+              # contact={
+              #   "name": "Mohammad D. Ashkezari",
+              #   # "url": "https://simonscmap.org",
+              #   "email": "mdehghan@uw.edu",
+              # },  
               openapi_tags=tags_metadata,
               openapi_url=f"/dataapi.json",
               docs_url=f"/try",
