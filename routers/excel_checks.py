@@ -283,8 +283,8 @@ router = APIRouter(
                    )
 
 class respTypes(str, Enum):
-    zip = "zip"
     json = "json"
+    zip = "zip"
 
 @router.post(
             "/{respType}", 
