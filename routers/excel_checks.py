@@ -173,11 +173,11 @@ def cross_validate_data_vars(dataDF, varsDF, datasetDF, exportPath=""):
             if kws.find(make) == -1: failure_case.append(kw_msg(vshort, "dataset make", make))
 
             if len(distributor) < 1:
-                failure_case.append("distributor cannot be non-string or null")
+                failure_case.append(f"distributor of '{vshort}' cannot be non-string or null")
             elif kws.find(distributor) == -1: 
                 failure_case.append(kw_msg(vshort, "dataset distributor", distributor))
             if len(source) < 1:
-                failure_case.append("source cannot be non-string or null")
+                failure_case.append(f"source of '{vshort}' cannot be non-string or null")
             elif kws.find(source) == -1: 
                 failure_case.append(kw_msg(vshort, "dataset source", source))
             if kws.find(ack) == -1: failure_case.append(kw_msg(vshort, "dataset acknowledgement", ack))
