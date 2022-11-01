@@ -138,6 +138,9 @@ def cross_validate_data_vars(dataDF, varsDF, datasetDF, exportPath=""):
     """
     def kw_msg(variable, context, value):
         return f"add keyword to {variable} [{context}]: {value}"
+    def check_str(val):
+        if not isinstance(val, str): return ""
+        else: return val
 
     failure_case = []
     try:
@@ -159,17 +162,24 @@ def cross_validate_data_vars(dataDF, varsDF, datasetDF, exportPath=""):
         cruiseNames = []
         if "cruise_names" in list(datasetDF.columns): cruiseNames = datasetDF["cruise_names"].values
         for _, row in datasetDF.head(1).iterrows(): 
-            dshort, dlong, make, distributor, source, ack = row["dataset_short_name"], row["dataset_long_name"], row["dataset_make"], row["dataset_distributor"], row["dataset_source"], row["dataset_acknowledgement"]
+            dshort, dlong, make, distributor, source, ack = check_str(row["dataset_short_name"]), check_str(row["dataset_long_name"]), check_str(row["dataset_make"]), check_str(row["dataset_distributor"]), check_str(row["dataset_source"]), check_str(row["dataset_acknowledgement"])
         for _, row in varsDF.iterrows():  
-            kws, sensor, vlong, vshort = row["var_keywords"], row["var_sensor"], row["var_long_name"], row["var_short_name"]
+            kws, sensor, vlong, vshort = check_str(row["var_keywords"]), check_str(row["var_sensor"]), check_str(row["var_long_name"]), check_str(row["var_short_name"])
             if kws.find(sensor) == -1: failure_case.append(kw_msg(vshort, "sensor", sensor))
             if kws.find(vlong) == -1: failure_case.append(kw_msg(vshort, "var long name", vlong))
             if kws.find(vshort) == -1: failure_case.append(kw_msg(vshort, "var short name", vshort))
             if kws.find(dshort) == -1: failure_case.append(kw_msg(vshort, "dataset short name", dshort))
             if kws.find(dlong) == -1: failure_case.append(kw_msg(vshort, "dataset long name", dlong))
             if kws.find(make) == -1: failure_case.append(kw_msg(vshort, "dataset make", make))
-            if kws.find(distributor) == -1: failure_case.append(kw_msg(vshort, "dataset distributor", distributor))
-            if kws.find(source) == -1: failure_case.append(kw_msg(vshort, "dataset source", source))
+
+            if len(distributor) < 1:
+                failure_case.append("distributor cannot be non-string or null")
+            elif kws.find(distributor) == -1: 
+                failure_case.append(kw_msg(vshort, "dataset distributor", distributor))
+            if len(source) < 1:
+                failure_case.append("source cannot be non-string or null")
+            elif kws.find(source) == -1: 
+                failure_case.append(kw_msg(vshort, "dataset source", source))
             if kws.find(ack) == -1: failure_case.append(kw_msg(vshort, "dataset acknowledgement", ack))
             for cruise in cruiseNames:
                 if kws.find(cruise) == -1: failure_case.append(kw_msg(vshort, "cruise name", cruise))
