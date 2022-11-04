@@ -182,6 +182,7 @@ def cross_validate_data_vars(dataDF, varsDF, datasetDF, exportPath=""):
                 failure_case.append(kw_msg(vshort, "dataset source", source))
             if kws.find(ack) == -1: failure_case.append(kw_msg(vshort, "dataset acknowledgement", ack))
             for cruise in cruiseNames:
+                if cruise != cruise: continue
                 if kws.find(cruise) == -1: failure_case.append(kw_msg(vshort, "cruise name", cruise))
 
     except Exception as e:
@@ -282,9 +283,6 @@ def check_cruises(datasetDF, dataDF, exportPath=""):
 #################################
 
 
-# async def valid_content_length(content_length: int = Header(..., lt=100_000_000)):
-async def valid_content_length(content_length: int = Header(10)):
-    return content_length
 
 
 router = APIRouter(

@@ -16,7 +16,7 @@ UPLOAD_EXCEL_DIR = f"{UPLOAD_DIR}excel/"
 
 
 
-API_VERSION = "0.0.48"
+API_VERSION = "0.0.49"
 
 # for styling reasons avoid multi-line text
 API_DESCRIPTION = "Simons CMAP collects heterogenous marine datasets from a wide array of public data sources and "
