@@ -1,17 +1,20 @@
 from ast import Str
-import glob, shutil, inspect, random
+import glob, os, shutil, inspect, random
 from pathlib import Path
 import pandas as pd
 import pandera as pa
 from pandera import Column, DataFrameSchema, Check
 from typing import IO
 from enum import Enum
-from fastapi import Response, APIRouter, File, Header, Depends, UploadFile, HTTPException
+from fastapi import Response, APIRouter, File, Header, Depends, UploadFile, HTTPException, BackgroundTasks
 from fastapi.responses import FileResponse
 from starlette import status
 from tempfile import NamedTemporaryFile
 import shutil
 from http import HTTPStatus
+import sweetviz as sv
+from bs4 import BeautifulSoup
+
 
 # relative path imports
 import sys
@@ -273,8 +276,26 @@ def check_cruises(datasetDF, dataDF, exportPath=""):
 
 
 
+def eda(data, fname):
+    if len(data)<1: return
+    rep = sv.analyze(data)
+    rep.show_html(fname, open_browser=False, layout='vertical')
+    file = open(fname, "r")
+    soup = BeautifulSoup(file, "html.parser")
+    logoDiv = soup.find_all("div", attrs={"class": "pos-logo-group"})
+    logoDiv[0].replace_with("")
+    logoDiv = soup.find_all("link", attrs={"type": "image/x-icon"})
+    logoDiv[0].replace_with("")
+    file.close()
+    file = open(fname, "w")
+    file.write(str(soup))
+    file.close()
+    return
 
 
+def remove_file(fname):
+    os.remove(fname)
+    return
 
 #################################
 #                               #
@@ -304,6 +325,7 @@ class respTypes(str, Enum):
             response_model=RESMOD
             )
 async def upload_file(
+                background_tasks: BackgroundTasks,
                 respType: respTypes,
                 response: Response,
                 file: UploadFile = File(...), 
@@ -335,12 +357,14 @@ async def upload_file(
             lang = lang_datasetDF(datasetDF.head(1), exportPath=f"{EXPORT_EXCEL_DIR}lang.csv")
             dl = dead_links_datasetDF(datasetDF, exportPath=f"{EXPORT_EXCEL_DIR}dead_links.csv")
             cruise = check_cruises(datasetDF, dataDF, exportPath=f"{EXPORT_EXCEL_DIR}cruise.csv")
+            eda(dataDF, fname=f"{EXPORT_EXCEL_DIR}viz.html")
         zipFN = f"{EXPORT_DIR}{basename}_{uploadID}"
         shutil.make_archive(zipFN, "zip", EXPORT_EXCEL_DIR)
         zipFN += ".zip"
         shutil.rmtree(RAND_UPLOAD_EXCEL_DIR) 
         shutil.rmtree(RAND_EXPORT_EXCEL_DIR) 
         msg = "success"
+        background_tasks.add_task(remove_file, f"{zipFN}")
     except Exception as e:
         response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
         datasetSchemaCases = {}

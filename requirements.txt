@@ -38,3 +38,4 @@ netCDF4
 tabulate
 tqdm
 similaritymeasures
+beautifulsoup4
