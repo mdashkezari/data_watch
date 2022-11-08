@@ -34,6 +34,10 @@ from utils.utils_lang import language_check
 def get_sheets(path):
     try:
         dataDF = pd.read_excel(path, sheet_name="data")
+        try:
+            if "time" in list(dataDF.columns): dataDF["time"] = pd.to_datetime(dataDF["time"]) 
+        except:
+            pass    
     except Exception as e:
         print(str(e))  
         dataDF = pd.DataFrame({})
@@ -88,7 +92,7 @@ varSchema = DataFrameSchema(
         "conversion_coefficient": Column(float, nullable=True, required=False),
     },
     strict=True,
-    coerce=False,
+    coerce=True,
 )
 
 
@@ -116,7 +120,7 @@ datasetSchema = DataFrameSchema(
         "cruise_names": Column(str, nullable=True, required=False),
     },
     strict=True,
-    coerce=False,
+    coerce=True,
 )
 
 
@@ -129,7 +133,7 @@ dataSchema = DataFrameSchema(
         "depth": Column(float, Check.ge(0), nullable=False, required=False),
     },
     strict=False,
-    coerce=False,
+    coerce=True,
 )
 
 
@@ -166,8 +170,13 @@ def cross_validate_data_vars(dataDF, varsDF, datasetDF, exportPath=""):
         if "cruise_names" in list(datasetDF.columns): cruiseNames = datasetDF["cruise_names"].values
         for _, row in datasetDF.head(1).iterrows(): 
             dshort, dlong, make, distributor, source, ack = check_str(row["dataset_short_name"]), check_str(row["dataset_long_name"]), check_str(row["dataset_make"]), check_str(row["dataset_distributor"]), check_str(row["dataset_source"]), check_str(row["dataset_acknowledgement"])
+            print(distributor)
         for _, row in varsDF.iterrows():  
             kws, sensor, vlong, vshort = check_str(row["var_keywords"]), check_str(row["var_sensor"]), check_str(row["var_long_name"]), check_str(row["var_short_name"])
+            dupKWs = kws.split(",")
+            kwss = set(dupKWs)
+            for item in kwss: dupKWs.remove(item)                
+            for dup in dupKWs: failure_case.append(f"duplicate keyword in {vshort}: {dup}")                            
             if kws.find(sensor) == -1: failure_case.append(kw_msg(vshort, "sensor", sensor))
             if kws.find(vlong) == -1: failure_case.append(kw_msg(vshort, "var long name", vlong))
             if kws.find(vshort) == -1: failure_case.append(kw_msg(vshort, "var short name", vshort))
@@ -294,7 +303,10 @@ def eda(data, fname):
 
 
 def remove_file(fname):
-    os.remove(fname)
+    try:
+        os.remove(fname)
+    except:
+        pass    
     return
 
 #################################
@@ -310,6 +322,7 @@ router = APIRouter(
                    prefix="/excel",
                    tags=[tags_metadata[1]["name"]]
                    )
+
 
 class respTypes(str, Enum):
     json = "json"
