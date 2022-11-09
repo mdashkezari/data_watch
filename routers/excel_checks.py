@@ -376,11 +376,10 @@ async def upload_file(
             datasetSchemaCases = validate_schema(datasetSchema, datasetDF.head(1), exportPath=f"{EXPORT_EXCEL_DIR}dataset_schema.csv")       
             dataSchemaCases = validate_schema(dataSchema, dataDF, exportPath=f"{EXPORT_EXCEL_DIR}data_schema.csv")
             cvdv = cross_validate_data_vars(dataDF, varsDF, datasetDF, exportPath=f"{EXPORT_EXCEL_DIR}cross_validate_data_vars.csv")        
-            # lang = lang_datasetDF(datasetDF.head(1), exportPath=f"{EXPORT_EXCEL_DIR}lang.csv")
-            lang = {}
+            lang = lang_datasetDF(datasetDF.head(1), exportPath=f"{EXPORT_EXCEL_DIR}lang.csv")
             dl = dead_links_datasetDF(datasetDF, exportPath=f"{EXPORT_EXCEL_DIR}dead_links.csv")
             cruise = check_cruises(datasetDF, dataDF, exportPath=f"{EXPORT_EXCEL_DIR}cruise.csv")
-            # eda(dataDF, fname=f"{EXPORT_EXCEL_DIR}viz.html")
+            eda(dataDF, fname=f"{EXPORT_EXCEL_DIR}viz.html")
             pd.DataFrame({"version": [API_VERSION]}).to_csv(f"{EXPORT_EXCEL_DIR}version.csv", index=False)
         zipFN = f"{EXPORT_DIR}{basename}_{uploadID}"
         shutil.make_archive(zipFN, "zip", EXPORT_EXCEL_DIR)
