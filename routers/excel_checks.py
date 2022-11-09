@@ -20,7 +20,7 @@ from bs4 import BeautifulSoup
 import sys
 sys.path.append("..")
 from settings import API_VERSION, tags_metadata, UPLOAD_EXCEL_DIR, EXPORT_DIR, SHORT_VAR_REGEX, ResponseModel as RESMOD, RESPONSE_MODEL_DESCIPTION
-from common import make_dir, find_cruise
+from common import make_dir, find_cruise, get_regions
 
 sys.path.append("../utils") 
 from utils.utils_dead_links import dead_links, get_links
@@ -166,7 +166,8 @@ def cross_validate_data_vars(dataDF, varsDF, datasetDF, exportPath=""):
             failure_case.append(f"{notInVars} are variable columns in the data sheet but not defined in the vars_meta_data sheet.")
 
        #keyword suggestions
-        cruiseNames = []
+        regDF, _, _ = get_regions()
+        cruiseNames = []        
         if "cruise_names" in list(datasetDF.columns): cruiseNames = datasetDF["cruise_names"].values
         for _, row in datasetDF.head(1).iterrows(): 
             dshort, dlong, make, distributor, source, ack = check_str(row["dataset_short_name"]), check_str(row["dataset_long_name"]), check_str(row["dataset_make"]), check_str(row["dataset_distributor"]), check_str(row["dataset_source"]), check_str(row["dataset_acknowledgement"])
@@ -175,8 +176,16 @@ def cross_validate_data_vars(dataDF, varsDF, datasetDF, exportPath=""):
             kws, sensor, vlong, vshort = check_str(row["var_keywords"]), check_str(row["var_sensor"]), check_str(row["var_long_name"]), check_str(row["var_short_name"])
             dupKWs = kws.split(",")
             kwss = set(dupKWs)
+            # duplicate keywords
             for item in kwss: dupKWs.remove(item)                
             for dup in dupKWs: failure_case.append(f"duplicate keyword in {vshort}: {dup}")                            
+            # check if region is in keywords            
+            regions = [r.lower() for r in regDF["Region_Name"].values]
+            regionFound = False
+            for r in regions:
+                if r in [k.lower() for k in list(kwss)]: regionFound = True
+            if not regionFound: failure_case.append(f"add keyword to {vshort} [region name]")     
+
             if kws.find(sensor) == -1: failure_case.append(kw_msg(vshort, "sensor", sensor))
             if kws.find(vlong) == -1: failure_case.append(kw_msg(vshort, "var long name", vlong))
             if kws.find(vshort) == -1: failure_case.append(kw_msg(vshort, "var short name", vshort))
@@ -367,10 +376,12 @@ async def upload_file(
             datasetSchemaCases = validate_schema(datasetSchema, datasetDF.head(1), exportPath=f"{EXPORT_EXCEL_DIR}dataset_schema.csv")       
             dataSchemaCases = validate_schema(dataSchema, dataDF, exportPath=f"{EXPORT_EXCEL_DIR}data_schema.csv")
             cvdv = cross_validate_data_vars(dataDF, varsDF, datasetDF, exportPath=f"{EXPORT_EXCEL_DIR}cross_validate_data_vars.csv")        
-            lang = lang_datasetDF(datasetDF.head(1), exportPath=f"{EXPORT_EXCEL_DIR}lang.csv")
+            # lang = lang_datasetDF(datasetDF.head(1), exportPath=f"{EXPORT_EXCEL_DIR}lang.csv")
+            lang = {}
             dl = dead_links_datasetDF(datasetDF, exportPath=f"{EXPORT_EXCEL_DIR}dead_links.csv")
             cruise = check_cruises(datasetDF, dataDF, exportPath=f"{EXPORT_EXCEL_DIR}cruise.csv")
-            eda(dataDF, fname=f"{EXPORT_EXCEL_DIR}viz.html")
+            # eda(dataDF, fname=f"{EXPORT_EXCEL_DIR}viz.html")
+            pd.DataFrame({"version": [API_VERSION]}).to_csv(f"{EXPORT_EXCEL_DIR}version.csv", index=False)
         zipFN = f"{EXPORT_DIR}{basename}_{uploadID}"
         shutil.make_archive(zipFN, "zip", EXPORT_EXCEL_DIR)
         zipFN += ".zip"

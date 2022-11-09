@@ -39,5 +39,8 @@ def find_cruise(name):
     return query(f"select * from tblCruise where [Name]='{name}' or Nickname='{name}'", servers=["rainier"])    
 
 
+def get_regions():
+    return query(f"select * from tblRegions", servers=["rainier"])    
+
 
 
