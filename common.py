@@ -1,7 +1,9 @@
 import os
 from settings import EXPORT_DIR, UPLOAD_DIR, UPLOAD_EXCEL_DIR
-from db import query
-
+from db import query, db_execute
+from user_agents import parse
+from datetime import datetime
+import re
 
 
 def make_dir(directory):
@@ -23,6 +25,31 @@ def project_init():
     return
     
 
+def store_call(req, ua_string):
+    ua = parse(ua_string)
+
+    now = datetime.now().strftime('%Y-%m-%dT%H:%M:%S')
+    host = req.headers["host"]
+    ip = ""
+    if req.headers.get("x-forwarded-for"):
+        ip = req.headers.get("x-forwarded-for").split(",")[0]
+    elif req.headers.get("X-Forwarded-For"):
+        ip = req.headers.get("X-Forwarded-For").split(",")[0]
+
+    if ua.browser.family == "ELB-HealthChecker": return
+    # if not re.compile(r"^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$").match(ip): return
+
+    command = f"""INSERT INTO tblValidation_API_Calls (
+            Path, IP, HOST, Browser, Browser_Version, OS, OS_Version, 
+            Device, Device_Brand, Device_Model, Mobile, Tablet, Touch, PC, Bot, Date_Time ) 
+            VALUES (
+                '{req.url.path}', '{ip}', '{host}', '{ua.browser.family}', '{ua.browser.version_string}', '{ua.os.family}', '{ua.os.version_string}',
+                '{ua.device.family}', '{ua.device.brand}', '{ua.device.model}', 
+                {int(ua.is_mobile)}, {int(ua.is_tablet)}, {int(ua.is_touch_capable)}, {int(ua.is_pc)}, {int(ua.is_bot)}, '{now}'
+                )"""          
+    db_execute(command, servers=["rossby"]) 
+    return 
+            
 
 
 def get_catalog():

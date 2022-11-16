@@ -1,11 +1,11 @@
 
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from typing import Optional
 from routers import db_checks, excel_checks
 from settings import RESPONSE_MODEL_DESCIPTION, tags_metadata, API_VERSION, API_DESCRIPTION
-from common import project_init
+from common import project_init, store_call
 from settings import ResponseModel as RESMOD
 
 
@@ -29,19 +29,27 @@ app = FastAPI(
 
 
 
-# app.add_middleware(
-#     CORSMiddleware,
-#     allow_origins=["*"],
-#     allow_credentials=True,
-#     allow_methods=["*"],
-#     allow_headers=["*"],
-# )
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 
 project_init()
 app.include_router(excel_checks.router)
 app.include_router(db_checks.router)
+
+
+@app.middleware("http")
+async def user_agent(req: Request, next):
+    store_call(req, req.headers["user-agent"])
+    res = await next(req)    
+    return res
+
 
 @app.get(
          "/", 

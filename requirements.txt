@@ -39,3 +39,4 @@ tabulate
 tqdm
 similaritymeasures
 beautifulsoup4
+user-agents
