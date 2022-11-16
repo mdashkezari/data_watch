@@ -37,7 +37,7 @@ def store_call(req, ua_string):
         ip = req.headers.get("X-Forwarded-For").split(",")[0]
 
     if ua.browser.family == "ELB-HealthChecker": return
-    # if not re.compile(r"^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$").match(ip): return
+    if not re.compile(r"^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$").match(ip): return
 
     command = f"""INSERT INTO tblValidation_API_Calls (
             Path, IP, HOST, Browser, Browser_Version, OS, OS_Version, 
