@@ -182,8 +182,9 @@ def cross_validate_data_vars(dataDF, varsDF, datasetDF, exportPath=""):
             # check if region is in keywords            
             regions = [r.lower() for r in regDF["Region_Name"].values]
             regionFound = False
+
             for r in regions:
-                if r in [k.lower() for k in list(kwss)]: regionFound = True
+                if r in [k.lower().strip() for k in list(kwss)]: regionFound = True
             if not regionFound: failure_case.append(f"add keyword to {vshort} [region name]")     
 
             if kws.find(sensor) == -1: failure_case.append(kw_msg(vshort, "sensor", sensor))

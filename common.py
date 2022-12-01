@@ -30,14 +30,24 @@ def store_call(req, ua_string):
 
     now = datetime.now().strftime('%Y-%m-%dT%H:%M:%S')
     host = req.headers["host"]
-    ip = ""
+    ip = req.client.host
     if req.headers.get("x-forwarded-for"):
         ip = req.headers.get("x-forwarded-for").split(",")[0]
     elif req.headers.get("X-Forwarded-For"):
         ip = req.headers.get("X-Forwarded-For").split(",")[0]
 
+    print("}}}}}}}}}}}}}}}}")
+    print(dict(req))
+    print("method: ", req.method)  # >>>> to save rest metod
+    # url_list = [
+    #     {"path": route.path, "name": route.name} for route in req.app.routes
+    # ]
+    # print(url_list)
+
+
     if ua.browser.family == "ELB-HealthChecker": return
     if not re.compile(r"^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$").match(ip): return
+
 
     command = f"""INSERT INTO tblValidation_API_Calls (
             Path, IP, HOST, Browser, Browser_Version, OS, OS_Version, 
