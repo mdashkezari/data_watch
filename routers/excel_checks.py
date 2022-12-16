@@ -339,9 +339,9 @@ def eda(data, fname):
     return
 
 
-def remove_file(fname):
+async def remove_file(fname):
     try:
-        os.remove(fname)
+        os.remove(fname) 
     except:
         pass    
     return
