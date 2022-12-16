@@ -404,8 +404,9 @@ async def upload_file(
             datasetSchemaCases = validate_schema(datasetSchema, datasetDF.head(1), exportPath=f"{EXPORT_EXCEL_DIR}dataset_schema.csv")       
             dataSchemaCases = validate_schema(dataSchema, dataDF, exportPath=f"{EXPORT_EXCEL_DIR}data_schema.csv")
             cvdv = cross_validate_data_vars(dataDF, varsDF, datasetDF, exportPath=f"{EXPORT_EXCEL_DIR}cross_validate_data_vars.csv")        
-            lang = lang_datasetDF(datasetDF.head(1), exportPath=f"{EXPORT_EXCEL_DIR}lang.csv")
-            lang_kw = lang_keywords(varsDF, exportPath=f"{EXPORT_EXCEL_DIR}lang_keywords.csv")
+            # lang = lang_datasetDF(datasetDF.head(1), exportPath=f"{EXPORT_EXCEL_DIR}lang.csv")
+            # lang_kw = lang_keywords(varsDF, exportPath=f"{EXPORT_EXCEL_DIR}lang_keywords.csv")
+            lang, lang_kw = {}, {}
             dl = dead_links_datasetDF(datasetDF, exportPath=f"{EXPORT_EXCEL_DIR}dead_links.csv")
             cruise = check_cruises(datasetDF, dataDF, exportPath=f"{EXPORT_EXCEL_DIR}cruise.csv")
             eda(dataDF, fname=f"{EXPORT_EXCEL_DIR}viz.html")
