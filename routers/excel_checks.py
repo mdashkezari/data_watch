@@ -137,6 +137,9 @@ dataSchema = DataFrameSchema(
 )
 
 
+def check_str(val):
+    if not isinstance(val, str): return ""
+    else: return val
 
 
 def cross_validate_data_vars(dataDF, varsDF, datasetDF, exportPath=""):
@@ -145,9 +148,6 @@ def cross_validate_data_vars(dataDF, varsDF, datasetDF, exportPath=""):
     """
     def kw_msg(variable, context, value):
         return f"add keyword to {variable} [{context}]: {value}"
-    def check_str(val):
-        if not isinstance(val, str): return ""
-        else: return val
 
     failure_case = []
     try:
@@ -183,8 +183,9 @@ def cross_validate_data_vars(dataDF, varsDF, datasetDF, exportPath=""):
             regions = [r.lower() for r in regDF["Region_Name"].values]
             regionFound = False
 
+            kwLowered = [k.lower().strip() for k in list(kwss)]
             for r in regions:
-                if r in [k.lower().strip() for k in list(kwss)]: regionFound = True
+                if r in kwLowered: regionFound = True
             if not regionFound: failure_case.append(f"add keyword to {vshort} [region name]")     
 
             if kws.find(sensor) == -1: failure_case.append(kw_msg(vshort, "sensor", sensor))
@@ -193,6 +194,8 @@ def cross_validate_data_vars(dataDF, varsDF, datasetDF, exportPath=""):
             if kws.find(dshort) == -1: failure_case.append(kw_msg(vshort, "dataset short name", dshort))
             if kws.find(dlong) == -1: failure_case.append(kw_msg(vshort, "dataset long name", dlong))
             if kws.find(make) == -1: failure_case.append(kw_msg(vshort, "dataset make", make))
+
+
 
             if len(distributor) < 1:
                 failure_case.append(f"distributor of '{vshort}' cannot be non-string or null")
@@ -231,6 +234,30 @@ def lang_datasetDF(datasetDF, exportPath=""):
     except:
         result = {}    
     return result         
+
+
+def lang_keywords(varsDF, exportPath=""):
+    print(f"\tlooking for potential language corrections in variable keywords")
+    dfCompiled = pd.DataFrame()
+    if "var_keywords" in list(varsDF.columns):
+        for index, row in varsDF.iterrows():  
+            varShortName = check_str(row["var_short_name"])
+            print(f"\t\t ({index+1}/{len(varsDF)}) variable keyword language check : {varShortName}")
+            langDF = language_check(check_str(row["var_keywords"]))
+            if len(langDF ) > 0:
+                langDF["variableName"] = varShortName
+                if len(dfCompiled ) < 1:
+                    dfCompiled = langDF
+                else:
+                    dfCompiled = pd.concat([dfCompiled, langDF], ignore_index=True)    
+
+    if len(exportPath) > 0 and len(dfCompiled) > 0: dfCompiled.to_csv(exportPath, index=False)          
+    try:
+        dfCompiled = dfCompiled.fillna("")
+        result = dfCompiled.to_dict()
+    except:
+        result = {}    
+    return result       
 
 
 
@@ -378,6 +405,7 @@ async def upload_file(
             dataSchemaCases = validate_schema(dataSchema, dataDF, exportPath=f"{EXPORT_EXCEL_DIR}data_schema.csv")
             cvdv = cross_validate_data_vars(dataDF, varsDF, datasetDF, exportPath=f"{EXPORT_EXCEL_DIR}cross_validate_data_vars.csv")        
             lang = lang_datasetDF(datasetDF.head(1), exportPath=f"{EXPORT_EXCEL_DIR}lang.csv")
+            lang_kw = lang_keywords(varsDF, exportPath=f"{EXPORT_EXCEL_DIR}lang_keywords.csv")
             dl = dead_links_datasetDF(datasetDF, exportPath=f"{EXPORT_EXCEL_DIR}dead_links.csv")
             cruise = check_cruises(datasetDF, dataDF, exportPath=f"{EXPORT_EXCEL_DIR}cruise.csv")
             eda(dataDF, fname=f"{EXPORT_EXCEL_DIR}viz.html")
@@ -395,6 +423,7 @@ async def upload_file(
         dataSchemaCases = {}
         cvdv = {}
         lang = {}
+        lang_kw = {}
         dl = {}
         cruise = {}
         msg = f"{inspect.stack()[0][3]}: {str(e).strip()}"   
@@ -409,6 +438,7 @@ async def upload_file(
                         "var_schema": varSchemaCases,
                         "data_vars": cvdv,
                         "lang_dataset": lang,
+                        "lang_keywords": lang_kw,
                         "dead_links": dl,
                         "cruise": cruise,
                         }, 

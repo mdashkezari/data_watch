@@ -36,9 +36,10 @@ def store_call(req, ua_string):
     elif req.headers.get("X-Forwarded-For"):
         ip = req.headers.get("X-Forwarded-For").split(",")[0]
 
-    print("}}}}}}}}}}}}}}}}")
-    print(dict(req))
-    print("method: ", req.method)  # >>>> to save rest metod
+    # print("}}}}}}}}}}}}}}}}")
+    # print(dict(req))
+    # print("method: ", req.method)  # >>>> to save rest metod
+    
     # url_list = [
     #     {"path": route.path, "name": route.name} for route in req.app.routes
     # ]
