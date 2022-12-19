@@ -275,17 +275,12 @@ async def dead_links_check(response: Response, dataset_name: Optional[str]="Merc
 
         
 
-@router.get(
-            "/test", 
-            tags=[], 
-            status_code=status.HTTP_200_OK,
-            summary="async test",
-            description="",
-            response_description=RESPONSE_MODEL_DESCIPTION,
-            response_model=RESMOD
-            )
-async def async_test(response: Response, dataset_name: Optional[str]="Mercator_Pisces_Biogeochem_Climatology"):
+@router.get( "/at1")
+async def async_test1():
     time.sleep(5)
-    err = ""
-    msg = "success"
-    return {"data": {}, "message": msg, "error": err, "version": API_VERSION}
+    return "success"
+
+
+@router.get( "/at2")
+async def async_test2():
+    return "success"  

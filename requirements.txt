@@ -1,5 +1,8 @@
 fastapi
 uvicorn
+uvloop
+gunicorn
+httptools
 numpy
 pandas
 matplotlib
@@ -19,7 +22,6 @@ python-jose
 cryptography
 passlib
 bcrypt
-httptools
 plotly
 spacy
 sklearn
