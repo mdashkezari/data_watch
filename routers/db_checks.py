@@ -16,6 +16,7 @@ from common import get_datasets, get_dataset_refs
 sys.path.append("../utils") 
 from utils.utils_dead_links import dead_links, get_links
 
+import time
 
 
 router = APIRouter(
@@ -274,3 +275,17 @@ async def dead_links_check(response: Response, dataset_name: Optional[str]="Merc
 
         
 
+@router.get(
+            "/test", 
+            tags=[], 
+            status_code=status.HTTP_200_OK,
+            summary="async test",
+            description="",
+            response_description=RESPONSE_MODEL_DESCIPTION,
+            response_model=RESMOD
+            )
+async def async_test(response: Response, dataset_name: Optional[str]="Mercator_Pisces_Biogeochem_Climatology"):
+    time.sleep(5)
+    err = ""
+    msg = "success"
+    return {"data": {}, "message": msg, "error": err, "version": API_VERSION}
