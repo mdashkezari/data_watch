@@ -135,6 +135,114 @@ async def stranded_variables(response: Response):
 
 
 
+@router.get(
+            "/duplicateVarLongName", 
+            tags=[], 
+            status_code=status.HTTP_200_OK,
+            summary="Look for duplicate variable long names in a dataset",
+            description="",
+            response_description=RESPONSE_MODEL_DESCIPTION,
+            response_model=RESMOD
+            )
+async def duplicate_var_long_name(response: Response):
+    """
+    Return a list of duplicate variable long names in a table (dataset).
+    """
+    try:
+        duplicates, msg, err = pd.DataFrame({}), "", False
+        duplicates = query("select count(Long_Name) repetition, table_name, Long_Name from udfCatalog() GROUP by table_name, Long_Name having count(Long_Name)>1", servers=["rainier"])[0]
+        msg = "success"
+    except Exception as e:
+        response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+        duplicates = pd.DataFrame({})
+        msg = f"{inspect.stack()[0][3]}: {str(e).strip()}"   
+        err = True
+        print(msg)        
+    return {"data": duplicates.to_dict(), "message": msg, "error": err, "version": API_VERSION}
+
+
+@router.get(
+            "/duplicateDatasetLongName", 
+            tags=[], 
+            status_code=status.HTTP_200_OK,
+            summary="Look for duplicate variable long names in a dataset",
+            description="",
+            response_description=RESPONSE_MODEL_DESCIPTION,
+            response_model=RESMOD
+            )
+async def duplicate_dataset_long_name(response: Response):
+    """
+    Return a list of duplicate dataset long name.
+    """
+    try:
+        duplicates, msg, err = pd.DataFrame({}), "", False
+        duplicates = query("""
+                            with cte as(select Dataset_Long_Name from tblDatasets GROUP by Dataset_Long_Name having count(Dataset_Long_Name)>1) 
+                            select distinct Dataset_Name, cte.Dataset_Long_Name, Table_Name from cte 
+                            join tblDatasets on tblDatasets.Dataset_Long_Name=cte.Dataset_Long_Name 
+                            join tblVariables on tblVariables.Dataset_ID=tblDatasets.ID        
+                            """, servers=["rainier"])[0]
+        msg = "success"
+    except Exception as e:
+        response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+        duplicates = pd.DataFrame({})
+        msg = f"{inspect.stack()[0][3]}: {str(e).strip()}"   
+        err = True
+        print(msg)        
+    return {"data": duplicates.to_dict(), "message": msg, "error": err, "version": API_VERSION}
+
+
+@router.get(
+            "/datasetsWithBlankSpace", 
+            tags=[], 
+            status_code=status.HTTP_200_OK,
+            summary="Look for datasets with blank space in their name",
+            description="",
+            response_description=RESPONSE_MODEL_DESCIPTION,
+            response_model=RESMOD
+            )
+async def datasets_with_blank_space(response: Response):
+    """
+    Return a list of datasets that their name include blank space character.
+    """
+    try:
+        data, msg, err = pd.DataFrame({}), "", False
+        data = query("select Dataset_Name [Dataset_Short_Name] from tblDatasets where Dataset_Name like '% %'", servers=["rainier"])[0]
+        msg = "success"
+    except Exception as e:
+        response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+        data = pd.DataFrame({})
+        msg = f"{inspect.stack()[0][3]}: {str(e).strip()}"   
+        err = True
+        print(msg)        
+    return {"data": data.to_dict(), "message": msg, "error": err, "version": API_VERSION}
+
+
+@router.get(
+            "/varsWithBlankSpace", 
+            tags=[], 
+            status_code=status.HTTP_200_OK,
+            summary="Look for variables with blank space in their name",
+            description="",
+            response_description=RESPONSE_MODEL_DESCIPTION,
+            response_model=RESMOD
+            )
+async def vars_with_blank_space(response: Response):
+    """
+    Return a list of variables that their name include blank space character.
+    """
+    try:
+        data, msg, err = pd.DataFrame({}), "", False
+        data = query("select Table_Name, Short_Name, len(Short_Name) [length] from tblVariables where Short_Name like '% %'", servers=["rainier"])[0]
+        msg = "success"
+    except Exception as e:
+        response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+        data = pd.DataFrame({})
+        msg = f"{inspect.stack()[0][3]}: {str(e).strip()}"   
+        err = True
+        print(msg)        
+    return {"data": data.to_dict(), "message": msg, "error": err, "version": API_VERSION}
+
 
 
 def language_check(lTool, dataset):
@@ -271,16 +379,3 @@ async def dead_links_check(response: Response, dataset_name: Optional[str]="Merc
         print(msg)        
     return {"data": dfCompiled.to_dict(), "message": msg, "error": err, "version": API_VERSION}
 
-
-
-        
-
-@router.get( "/at1")
-async def async_test1():
-    time.sleep(5)
-    return "success"
-
-
-@router.get( "/at2")
-async def async_test2():
-    return "success"  
