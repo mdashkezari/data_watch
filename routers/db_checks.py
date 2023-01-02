@@ -134,7 +134,7 @@ async def stranded_variables(response: Response):
     return {"data": strandedVarsDF.to_dict(), "message": msg, "error": err, "version": API_VERSION}
 
 
-
+'''
 @router.get(
             "/duplicateVarLongName", 
             tags=[], 
@@ -243,7 +243,7 @@ async def vars_with_blank_space(response: Response):
         print(msg)        
     return {"data": data.to_dict(), "message": msg, "error": err, "version": API_VERSION}
 
-
+'''
 
 def language_check(lTool, dataset):
     """

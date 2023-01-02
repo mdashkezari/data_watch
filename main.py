@@ -10,7 +10,7 @@ from settings import ResponseModel as RESMOD
 
 
 app = FastAPI(
-              title="Simons CMAP Data Integrity API",
+              title="Simons CMAP Data Validation API",
               description=API_DESCRIPTION,
               version=API_VERSION,  
               # contact={
