@@ -16,7 +16,7 @@ UPLOAD_EXCEL_DIR = f"{UPLOAD_DIR}excel/"
 
 
 
-API_VERSION = "0.1.7"
+API_VERSION = "0.1.8"
 
 # for styling reasons avoid multi-line text
 API_DESCRIPTION = "Simons CMAP collects heterogenous marine datasets from a wide array of public data sources and "
@@ -50,21 +50,5 @@ tags_metadata = [
     {
         "name": "Post Ingestion Checks",
         "description": "Data integrety and quality checks at the database level",
-    },
-#     {
-#         "name": "Upload",
-#         "description": "Submit a file as input for an extended operation",
-#     },
-#     {
-#         "name": "Visualization",
-#         "description": "Create visualizations using the retrieved data nd serve the results in form of binary files",
-#     },    
-#     {
-#         "name": "Data Analytics",
-#         "description": "Run server-side data analysis and serve the results",
-#     },    
-#     {
-#         "name": "System Telemetry",
-#         "description": "Return monitoring signals collected from system infrastructure",
-#     },   
+    }, 
 ]
