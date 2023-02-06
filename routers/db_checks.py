@@ -43,7 +43,7 @@ async def db_checks():
             "/strandedTables", 
             tags=[], 
             status_code=status.HTTP_200_OK,
-            summary="Search for stranded tables in catalog",
+            summary="Search for stranded tables in the catalog",
             description="",
             response_description=RESPONSE_MODEL_DESCIPTION,
             response_model=RESMOD
@@ -93,12 +93,11 @@ def vars_exist(table, vars, servers):
 
 
 
-
 @router.get(
             "/strandedVariables", 
             tags=[], 
             status_code=status.HTTP_200_OK,
-            summary="Search for stranded variables in catalog",
+            summary="Search for stranded variables in the catalog",
             description="",
             response_description=RESPONSE_MODEL_DESCIPTION,
             response_model=RESMOD
@@ -132,6 +131,57 @@ async def stranded_variables(response: Response):
         err = True
         print(msg)        
     return {"data": strandedVarsDF.to_dict(), "message": msg, "error": err, "version": API_VERSION}
+
+
+@router.get(
+            "/varsInTableNotCatalog", 
+            tags=[], 
+            status_code=status.HTTP_200_OK,
+            summary="Look for table fields that are not present in the catalog",
+            description="",
+            response_description=RESPONSE_MODEL_DESCIPTION,
+            response_model=RESMOD
+            )
+async def vars_in_table_not_catalog(response: Response, table_name: Optional[str]=None):
+    """
+    Return a list of table fields that are not present in the catalog. Note that the returned fields don't necessarily reflect a bug. 
+    If `table_name` is empty all tables will be checked, otherwise only the specified table will be checked. Tables on cloud clusters are not checked.
+    """
+    try:
+        ignore = ["time", "lat", "lon", "depth", "month", "year", "week", "day", "dayofyear", "hour"]
+        fieldsNotInCatalogDF, msg, err = pd.DataFrame({}), "", False
+        catalogVars, _, _ = query("select Short_Name, Table_Name from tblVariables", servers=["rainier"])
+        server_tables = {
+                        SERVERS[0]: query("select * from information_schema.tables", servers=["rainier"])[0]["TABLE_NAME"].values,
+                        SERVERS[1]: query("select * from information_schema.tables", servers=["rossby"])[0]["TABLE_NAME"].values,
+                        SERVERS[2]: query("select * from information_schema.tables", servers=["mariana"])[0]["TABLE_NAME"].values
+                        }
+        fields_nic, servers_nic, tables_nic = [], [], []  # nic: not in catalog        
+        for server in SERVERS:
+            if table_name is None: 
+                tables = server_tables[server]
+            else:
+                tables = [table_name]
+            for t in tables:
+                if t not in catalogVars["Table_Name"].unique(): continue
+                fields = query(f"select column_name from information_schema.columns where table_name='{t}'", servers=[server])[0]["column_name"].values
+                for field in fields:
+                    if field in ignore: continue
+                    print(f"Checking: Server: {server}, Table: {t}, Field: {field}")
+                    if len(catalogVars.query(f"Short_Name=='{field}' and Table_Name=='{t}'")) < 1:
+                        servers_nic.append(server)
+                        tables_nic.append(t)
+                        fields_nic.append(field)
+        if len(servers_nic) > 0:
+            fieldsNotInCatalogDF = pd.DataFrame({"Server": servers_nic, "Table": tables_nic, "Field": fields_nic})
+        msg = "success"
+    except Exception as e:
+        response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+        fieldsNotInCatalogDF = pd.DataFrame({})
+        msg = f"{inspect.stack()[0][3]}: {str(e).strip()}"   
+        err = True
+        print(msg)        
+    return {"data": fieldsNotInCatalogDF.to_dict(), "message": msg, "error": err, "version": API_VERSION}
 
 
 @router.get(

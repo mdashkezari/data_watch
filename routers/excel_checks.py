@@ -1,6 +1,7 @@
 from ast import Str
 import glob, os, shutil, inspect, random
 from pathlib import Path
+import numpy as np
 import pandas as pd
 import pandera as pa
 from pandera import Column, DataFrameSchema, Check
@@ -323,19 +324,24 @@ def check_cruises(datasetDF, dataDF, exportPath=""):
 
 
 def eda(data, fname):
-    if len(data)<1: return
-    rep = sv.analyze(data)
-    rep.show_html(fname, open_browser=False, layout='vertical')
-    file = open(fname, "r")
-    soup = BeautifulSoup(file, "html.parser")
-    logoDiv = soup.find_all("div", attrs={"class": "pos-logo-group"})
-    logoDiv[0].replace_with("")
-    logoDiv = soup.find_all("link", attrs={"type": "image/x-icon"})
-    logoDiv[0].replace_with("")
-    file.close()
-    file = open(fname, "w")
-    file.write(str(soup))
-    file.close()
+    try:
+        if len(data)<1: return
+        data = data.replace("", np.nan, regex=True)
+        data = data.replace(" ", np.nan, regex=True)
+        rep = sv.analyze(data)
+        rep.show_html(fname, open_browser=False, layout='vertical')
+        file = open(fname, "r")
+        soup = BeautifulSoup(file, "html.parser")
+        logoDiv = soup.find_all("div", attrs={"class": "pos-logo-group"})
+        logoDiv[0].replace_with("")
+        logoDiv = soup.find_all("link", attrs={"type": "image/x-icon"})
+        logoDiv[0].replace_with("")
+        file.close()
+        file = open(fname, "w")
+        file.write(str(soup))
+        file.close()
+    except Exception as e:
+        print(f"Error in eda: {str(e)}")        
     return
 
 
