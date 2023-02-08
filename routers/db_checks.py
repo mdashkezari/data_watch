@@ -185,6 +185,32 @@ async def vars_in_table_not_catalog(response: Response, table_name: Optional[str
 
 
 @router.get(
+            "/numericLeadingVariables", 
+            tags=[], 
+            status_code=status.HTTP_200_OK,
+            summary="Find variable names starting with a number",
+            description="",
+            response_description=RESPONSE_MODEL_DESCIPTION,
+            response_model=RESMOD
+            )
+async def numeric_leading_variables(response: Response):
+    """
+    Return a list of variables names (short names) that start with a number.
+    """
+    try:
+        numericVarsDF, msg, err = pd.DataFrame({}), "", False
+        numericVarsDF, _, _ = query("select Short_Name, Table_Name from tblVariables where Short_Name like '[0-9]%'")
+        msg = "success"
+    except Exception as e:
+        response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+        numericVarsDF = pd.DataFrame({})
+        msg = f"{inspect.stack()[0][3]}: {str(e).strip()}"   
+        err = True
+        print(msg)        
+    return {"data": numericVarsDF.to_dict(), "message": msg, "error": err, "version": API_VERSION}
+
+
+@router.get(
             "/duplicateVarLongName", 
             tags=[], 
             status_code=status.HTTP_200_OK,
