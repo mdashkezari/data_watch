@@ -11,7 +11,6 @@ from fastapi import Response, APIRouter, File, Header, Depends, UploadFile, HTTP
 from fastapi.responses import FileResponse
 from starlette import status
 from tempfile import NamedTemporaryFile
-import shutil
 from http import HTTPStatus
 import sweetviz as sv
 from bs4 import BeautifulSoup
