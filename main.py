@@ -132,7 +132,6 @@ print("model loaded")
             )
 async def upload_image(
                 response: Response,
-                # background_tasks: BackgroundTasks,
                 file: UploadFile = File(...), 
                 ):         
     try:            
@@ -153,6 +152,19 @@ async def upload_image(
         err = True
         print(msg)     
     return {"data": {"prediction": pred_class_name, "prediction_probability": float(pred_prob)}, "message": "", "error": err, "version": API_VERSION}     
+
+
+@app.get(
+         "/rootList", 
+         tags=["Root"], 
+         summary="Root list",
+         response_description=RESPONSE_MODEL_DESCIPTION,
+         response_model=RESMOD         
+         )
+async def root_list():
+    return {"data": {"class_names": list(class_names)}, "message": "", "error": False, "version": API_VERSION}
+
+
 
 
 ####################################################################################
