@@ -46,7 +46,7 @@ def drop_empty_rows_and_columns(data):
     return data
 
 def process_data_sheet(data):    
-    data = handle_empty_and_space(data)
+    # data = handle_empty_and_space(data)
     data = drop_empty_rows_and_columns(data)
     return data
 
@@ -54,7 +54,7 @@ def process_data_sheet(data):
 def get_sheets(path):    
     try:
         dataDF = pd.read_excel(path, sheet_name="data")
-        dataDF = process_data_sheet(dataDF)
+        # dataDF = process_data_sheet(dataDF)
         try:
             if "time" in list(dataDF.columns): dataDF["time"] = pd.to_datetime(dataDF["time"]) 
         except:
@@ -64,13 +64,13 @@ def get_sheets(path):
         dataDF = pd.DataFrame({})
     try:
         datasetDF = pd.read_excel(path, sheet_name="dataset_meta_data")
-        datasetDF = process_data_sheet(datasetDF)
+        # datasetDF = process_data_sheet(datasetDF)
     except Exception as e:
         print(str(e))  
         datasetDF = pd.DataFrame({})
     try:
         varsDF = pd.read_excel(path, sheet_name="vars_meta_data")
-        varsDF = process_data_sheet(varsDF)
+        # varsDF = process_data_sheet(varsDF)
     except Exception as e:
         print(str(e))  
         varsDF = pd.DataFrame({})
@@ -187,7 +187,6 @@ def cross_validate_data_vars(dataDF, varsDF, datasetDF, exportPath=""):
             failure_case.append(f"{notInData} defined in vars_meta_data sheet but not found the data sheet.")
         if len(notInVars) > 0:    
             failure_case.append(f"{notInVars} are variable columns in the data sheet but not defined in the vars_meta_data sheet.")
-
        #keyword suggestions
         regDF, _, _ = get_regions()
         cruiseNames = []        
@@ -420,7 +419,7 @@ async def upload_file(
         excelFiles = [uploadedExcelFName]
         for index, excelFN in enumerate(excelFiles):
             print(f"checking excel file ({index+1}/{len(excelFiles)}): {excelFN}")
-            dataDF, datasetDF, varsDF = get_sheets(f"{excelFN}")  
+            dataDF, datasetDF, varsDF = get_sheets(f"{excelFN}") 
             basename = Path(excelFN).stem
             RAND_EXPORT_EXCEL_DIR = f"{EXPORT_DIR}{uploadID}/"
             make_dir(RAND_EXPORT_EXCEL_DIR)
