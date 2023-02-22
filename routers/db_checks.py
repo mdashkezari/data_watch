@@ -10,7 +10,7 @@ import language_tool_python
 import sys
 sys.path.append("..")
 from db import query
-from settings import API_VERSION, DB_DESCRIPTION, tags_metadata, SERVERS, ResponseModel as RESMOD, RESPONSE_MODEL_DESCIPTION
+from settings import API_VERSION, SUCCESS_MSG, DB_DESCRIPTION, tags_metadata, SERVERS, ResponseModel as RESMOD, RESPONSE_MODEL_DESCIPTION
 from common import get_datasets, get_dataset_refs
 
 sys.path.append("../utils") 
@@ -63,7 +63,7 @@ async def stranded_tables(response: Response):
             if (not t in rainierTables) and (not t in rossbyTables) and (not t in marianaTables):
                 strandedTables.append(t)
         strandedTablesDF = pd.DataFrame({"Table": strandedTables})
-        msg = "success"
+        msg = SUCCESS_MSG
     except Exception as e:
         response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
         strandedTablesDF = pd.DataFrame({})
@@ -123,7 +123,7 @@ async def stranded_variables(response: Response):
                             strandedVarsDF = rowDF
                         else:
                             strandedVarsDF = pd.concat([strandedVarsDF, rowDF], ignore_index=True)   
-        msg = "success"
+        msg = SUCCESS_MSG
     except Exception as e:
         response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
         strandedVarsDF = pd.DataFrame({})
@@ -174,7 +174,7 @@ async def vars_in_table_not_catalog(response: Response, table_name: Optional[str
                         fields_nic.append(field)
         if len(servers_nic) > 0:
             fieldsNotInCatalogDF = pd.DataFrame({"Server": servers_nic, "Table": tables_nic, "Field": fields_nic})
-        msg = "success"
+        msg = SUCCESS_MSG
     except Exception as e:
         response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
         fieldsNotInCatalogDF = pd.DataFrame({})
@@ -200,7 +200,7 @@ async def numeric_leading_variables(response: Response):
     try:
         numericVarsDF, msg, err = pd.DataFrame({}), "", False
         numericVarsDF, _, _ = query("select Short_Name, Table_Name from tblVariables where Short_Name like '[0-9]%'")
-        msg = "success"
+        msg = SUCCESS_MSG
     except Exception as e:
         response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
         numericVarsDF = pd.DataFrame({})
@@ -226,7 +226,7 @@ async def duplicate_var_long_name(response: Response):
     try:
         duplicates, msg, err = pd.DataFrame({}), "", False
         duplicates = query("select count(Long_Name) repetition, table_name, Long_Name from udfCatalog() GROUP by table_name, Long_Name having count(Long_Name)>1", servers=["rainier"])[0]
-        msg = "success"
+        msg = SUCCESS_MSG
     except Exception as e:
         response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
         duplicates = pd.DataFrame({})
@@ -257,7 +257,7 @@ async def duplicate_dataset_long_name(response: Response):
                             join tblDatasets on tblDatasets.Dataset_Long_Name=cte.Dataset_Long_Name 
                             join tblVariables on tblVariables.Dataset_ID=tblDatasets.ID        
                             """, servers=["rainier"])[0]
-        msg = "success"
+        msg = SUCCESS_MSG
     except Exception as e:
         response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
         duplicates = pd.DataFrame({})
@@ -283,7 +283,7 @@ async def datasets_with_blank_space(response: Response):
     try:
         data, msg, err = pd.DataFrame({}), "", False
         data = query("select Dataset_Name [Dataset_Short_Name] from tblDatasets where Dataset_Name like '% %'", servers=["rainier"])[0]
-        msg = "success"
+        msg = SUCCESS_MSG
     except Exception as e:
         response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
         data = pd.DataFrame({})
@@ -309,7 +309,7 @@ async def vars_with_blank_space(response: Response):
     try:
         data, msg, err = pd.DataFrame({}), "", False
         data = query("select Table_Name, Short_Name, len(Short_Name) [length] from tblVariables where Short_Name like '% %'", servers=["rainier"])[0]
-        msg = "success"
+        msg = SUCCESS_MSG
     except Exception as e:
         response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
         data = pd.DataFrame({})
@@ -382,7 +382,7 @@ async def language_check(response: Response, dataset_name: Optional[str]=None):
                 dfCompiled = pd.concat([dfCompiled, checks], ignore_index=True)        
         lTool.close()
         # dfCompiled.to_csv("./language_ckecks.csv", index=False)
-        msg = "success"
+        msg = SUCCESS_MSG
     except Exception as e:
         response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
         dfCompiled = pd.DataFrame({})
@@ -444,7 +444,7 @@ async def dead_links_check(response: Response, dataset_name: Optional[str]="Merc
                 else:
                     dfCompiled = pd.concat([dfCompiled, dlDF], ignore_index=True)    
         # dfCompiled.to_csv("./dead_links.csv", index=False)
-        msg = "success"
+        msg = SUCCESS_MSG
     except Exception as e:
         response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
         dfCompiled = pd.DataFrame({})

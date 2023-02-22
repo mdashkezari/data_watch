@@ -42,3 +42,4 @@ tqdm
 similaritymeasures
 beautifulsoup4
 user-agents
+databricks-sql-connector

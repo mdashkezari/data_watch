@@ -36,7 +36,6 @@ def store_call(req, ua_string):
     elif req.headers.get("X-Forwarded-For"):
         ip = req.headers.get("X-Forwarded-For").split(",")[0]
 
-    # print("}}}}}}}}}}}}}}}}")
     # print(dict(req))
     # print("method: ", req.method)  # >>>> to save rest metod
     
@@ -79,6 +78,8 @@ def find_cruise(name):
 
 def get_regions():
     return query(f"select * from tblRegions", servers=["rainier"])    
+
+
 
 
 

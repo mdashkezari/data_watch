@@ -19,7 +19,7 @@ from bs4 import BeautifulSoup
 # relative path imports
 import sys
 sys.path.append("..")
-from settings import API_VERSION, tags_metadata, UPLOAD_EXCEL_DIR, EXPORT_DIR, SHORT_VAR_REGEX, ResponseModel as RESMOD, RESPONSE_MODEL_DESCIPTION
+from settings import API_VERSION, SUCCESS_MSG, tags_metadata, UPLOAD_EXCEL_DIR, EXPORT_DIR, SHORT_VAR_REGEX, ResponseModel as RESMOD, RESPONSE_MODEL_DESCIPTION
 from common import make_dir, find_cruise, get_regions
 
 sys.path.append("../utils") 
@@ -443,7 +443,7 @@ async def upload_file(
         zipFN += ".zip"
         shutil.rmtree(RAND_UPLOAD_EXCEL_DIR) 
         shutil.rmtree(RAND_EXPORT_EXCEL_DIR) 
-        msg = "success"
+        msg = SUCCESS_MSG
         background_tasks.add_task(remove_file, f"{zipFN}")
     except Exception as e:
         response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR

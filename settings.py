@@ -16,7 +16,9 @@ UPLOAD_EXCEL_DIR = f"{UPLOAD_DIR}excel/"
 
 
 
-API_VERSION = "0.1.11"
+API_VERSION = "0.1.12"
+
+SUCCESS_MSG = "success"
 
 # for styling reasons avoid multi-line text
 API_DESCRIPTION = "Simons CMAP collects heterogenous marine datasets from a wide array of public data sources and "
@@ -30,6 +32,9 @@ API_DESCRIPTION += "Also, data producers who are planning to submit their data t
 DB_DESCRIPTION = "Database objects may evolve over time in a way that is not consistent with the initial intended integrity plans. "
 DB_DESCRIPTION += "This route exposes methods that are critical in maintaining the database performance and integrity."
 
+CLUSTER_DESCRIPTION = "Simons CMAP Big Data cluster is distributed in nature. "
+CLUSTER_DESCRIPTION += "It employs Apache Spark as its compute engine and is capable of ingesting massive datasets (> PB) with short update cycles."
+CLUSTER_DESCRIPTION += "This route involves a series of endpoints to explore and query the cluster dataset."
 
 class ResponseModel(BaseModel):
     data: dict
@@ -50,5 +55,9 @@ tags_metadata = [
     {
         "name": "Post Ingestion Checks",
         "description": "Data integrety and quality checks at the database level",
+    }, 
+    {
+        "name": "Cluster Endpoints",
+        "description": "A series of endpoints to query the Simons CMAP Big-Data cluster",
     }, 
 ]
