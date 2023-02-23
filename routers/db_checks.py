@@ -225,7 +225,7 @@ async def duplicate_var_long_name(response: Response):
     """
     try:
         duplicates, msg, err = pd.DataFrame({}), "", False
-        duplicates, _, _ = query("select count(Long_Name) repetition, table_name, Long_Name from udfCatalog() GROUP by table_name, Long_Name having count(Long_Name)>1", servers=["rainier"])[0]
+        duplicates = query("select count(Long_Name) repetition, table_name, Long_Name from udfCatalog() GROUP by table_name, Long_Name having count(Long_Name)>1", servers=["rainier"])[0]
         msg = SUCCESS_MSG
     except Exception as e:
         response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
