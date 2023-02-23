@@ -6,7 +6,7 @@ from datetime import datetime
 import re
 from databricks import sql
 import pandas as pd
-import inspect
+import inspect, random, string, shutil
 
 
 def make_dir(directory):
@@ -27,6 +27,24 @@ def project_init():
     make_dir(UPLOAD_EXCEL_DIR)
     return
     
+
+    
+def make_random_dir(baseDir):
+    """
+    Create a directory with a randomly generated name.
+    """
+    randDir = f"{baseDir}{''.join(random.choices(string.ascii_letters, k=16))}/" 
+    make_dir(randDir)
+    return randDir  
+
+async def remove_dir(dirPath: str):
+    """
+    Remove a directory and its entire contents (recursively).
+    """
+    if os.path.isdir(dirPath): 
+        shutil.rmtree(dirPath)      
+    return
+
 
 def store_call(req, ua_string):
     ua = parse(ua_string)

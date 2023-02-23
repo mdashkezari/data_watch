@@ -1,8 +1,9 @@
 
 
 
-from fastapi import APIRouter, status, Response
+from fastapi import APIRouter, status, Response, BackgroundTasks
 from typing import Optional, List
+from fastapi.responses import FileResponse
 import pandas as pd
 import inspect
 
@@ -11,8 +12,8 @@ import inspect
 import sys
 sys.path.append("..")
 from db import query
-from settings import API_VERSION, SUCCESS_MSG, CLUSTER_DESCRIPTION, tags_metadata, ResponseModel as RESMOD, RESPONSE_MODEL_DESCIPTION
-from common import cluster_query
+from settings import API_VERSION, SUCCESS_MSG, CLUSTER_DESCRIPTION, tags_metadata, ResponseModel as RESMOD, RESPONSE_MODEL_DESCIPTION, EXPORT_DIR
+from common import cluster_query, make_random_dir, remove_dir
 
 
 
@@ -101,29 +102,62 @@ async def cluster_temporal_range(response: Response, table_name: str):
 
 
 
+# @router.get(
+#             "/query", 
+#             tags=[], 
+#             status_code=status.HTTP_200_OK,
+#             summary="Run a custom ANSI SQL:2003",
+#             description="",
+#             response_description=RESPONSE_MODEL_DESCIPTION,
+#             response_model=RESMOD
+#             )
+# async def custom_cluster_query(response: Response, query: str):
+#     """
+#     Run a custom ANSI SQL:2003 on the cluster and return the results.
+#     """
+#     try:
+#         data, msg, err = pd.DataFrame({}), "", False
+#         data, msg, err = cluster_query(query)
+#         msg = SUCCESS_MSG
+#         data = data.fillna("")
+#     except Exception as e:
+#         response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+#         data = pd.DataFrame({})
+#         msg = f"{inspect.stack()[0][3]}: {str(e).strip()}"   
+#         err = True
+#         print(msg)        
+#     return {"data": data.to_dict(), "message": msg, "error": err, "version": API_VERSION}
+
+
+
+
+
+
+
 @router.get(
             "/query", 
             tags=[], 
             status_code=status.HTTP_200_OK,
             summary="Run a custom ANSI SQL:2003",
             description="",
-            response_description=RESPONSE_MODEL_DESCIPTION,
-            response_model=RESMOD
+            # response_description=RESPONSE_MODEL_DESCIPTION,
+            # response_model=RESMOD
             )
-async def custom_cluster_query(response: Response, query: str):
+async def custom_cluster_query(background_tasks: BackgroundTasks, response: Response, query: str):
     """
     Run a custom ANSI SQL:2003 on the cluster and return the results.
     """
     try:
-        data, msg, err = pd.DataFrame({}), "", False
         data, msg, err = cluster_query(query)
+        dataDir = make_random_dir(EXPORT_DIR)
+        fn = f"{dataDir}/data.parquet"
+        data.to_parquet(fn, index=False) 
         msg = SUCCESS_MSG
+        background_tasks.add_task(remove_dir, dataDir)
     except Exception as e:
         response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
-        data = pd.DataFrame({})
         msg = f"{inspect.stack()[0][3]}: {str(e).strip()}"   
-        err = True
         print(msg)        
-    return {"data": data.to_dict(), "message": msg, "error": err, "version": API_VERSION}
+    return FileResponse(fn) 
 
 

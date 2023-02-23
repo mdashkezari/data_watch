@@ -257,10 +257,6 @@ async def duplicate_dataset_long_name(response: Response):
                             join tblDatasets on tblDatasets.Dataset_Long_Name=cte.Dataset_Long_Name 
                             join tblVariables on tblVariables.Dataset_ID=tblDatasets.ID        
                             """, servers=["rainier"])[0]
-        print(">>>>>>>>>>>>>>>>>>>>>")                    
-        print(duplicates)
-        print(type(duplicates))
-
         msg = SUCCESS_MSG
     except Exception as e:
         response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
