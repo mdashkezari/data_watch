@@ -16,7 +16,7 @@ UPLOAD_EXCEL_DIR = f"{UPLOAD_DIR}excel/"
 
 
 
-API_VERSION = "0.1.15"
+API_VERSION = "0.1.16"
 
 SUCCESS_MSG = "success"
 
