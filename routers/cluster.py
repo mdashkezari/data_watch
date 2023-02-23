@@ -82,7 +82,7 @@ async def cluster_tables(response: Response):
             )
 async def cluster_temporal_range(response: Response, table_name: str):
     """
-    Rentun the time range (`min(time), max(time)`) of a table.
+    Return the time range (`min(time), max(time)`) of a table.
     """
     try:
         data, msg, err = pd.DataFrame({}), "", False
@@ -101,29 +101,29 @@ async def cluster_temporal_range(response: Response, table_name: str):
 
 
 
-# @router.get(
-#             "/query", 
-#             tags=[], 
-#             status_code=status.HTTP_200_OK,
-#             summary="Run custom ANSI SQL",
-#             description="",
-#             response_description=RESPONSE_MODEL_DESCIPTION,
-#             response_model=RESMOD
-#             )
-# async def custom_cluster_query(response: Response, query: str):
-#     """
-#     Run a custom ANSI sql on the cluster and return the results.
-#     """
-#     try:
-#         data, msg, err = pd.DataFrame({}), "", False
-#         data, msg, err = cluster_query(query)
-#         msg = SUCCESS_MSG
-#     except Exception as e:
-#         response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
-#         data = pd.DataFrame({})
-#         msg = f"{inspect.stack()[0][3]}: {str(e).strip()}"   
-#         err = True
-#         print(msg)        
-#     return {"data": data.to_dict(), "message": msg, "error": err, "version": API_VERSION}
+@router.get(
+            "/query", 
+            tags=[], 
+            status_code=status.HTTP_200_OK,
+            summary="Run a custom ANSI SQL:2003",
+            description="",
+            response_description=RESPONSE_MODEL_DESCIPTION,
+            response_model=RESMOD
+            )
+async def custom_cluster_query(response: Response, query: str):
+    """
+    Run a custom ANSI SQL:2003 on the cluster and return the results.
+    """
+    try:
+        data, msg, err = pd.DataFrame({}), "", False
+        data, msg, err = cluster_query(query)
+        msg = SUCCESS_MSG
+    except Exception as e:
+        response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+        data = pd.DataFrame({})
+        msg = f"{inspect.stack()[0][3]}: {str(e).strip()}"   
+        err = True
+        print(msg)        
+    return {"data": data.to_dict(), "message": msg, "error": err, "version": API_VERSION}
 
 
