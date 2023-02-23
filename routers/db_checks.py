@@ -225,7 +225,7 @@ async def duplicate_var_long_name(response: Response):
     """
     try:
         duplicates, msg, err = pd.DataFrame({}), "", False
-        duplicates = query("select count(Long_Name) repetition, table_name, Long_Name from udfCatalog() GROUP by table_name, Long_Name having count(Long_Name)>1", servers=["rainier"])[0]
+        duplicates, _, _ = query("select count(Long_Name) repetition, table_name, Long_Name from udfCatalog() GROUP by table_name, Long_Name having count(Long_Name)>1", servers=["rainier"])[0]
         msg = SUCCESS_MSG
     except Exception as e:
         response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
@@ -257,6 +257,10 @@ async def duplicate_dataset_long_name(response: Response):
                             join tblDatasets on tblDatasets.Dataset_Long_Name=cte.Dataset_Long_Name 
                             join tblVariables on tblVariables.Dataset_ID=tblDatasets.ID        
                             """, servers=["rainier"])[0]
+        print(">>>>>>>>>>>>>>>>>>>>>")                    
+        print(duplicates)
+        print(type(duplicates))
+
         msg = SUCCESS_MSG
     except Exception as e:
         response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR

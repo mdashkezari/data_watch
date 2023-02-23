@@ -12,7 +12,7 @@ import sys
 sys.path.append("..")
 from db import query
 from settings import API_VERSION, SUCCESS_MSG, CLUSTER_DESCRIPTION, tags_metadata, ResponseModel as RESMOD, RESPONSE_MODEL_DESCIPTION
-from db import cluster_query
+from common import cluster_query
 
 
 

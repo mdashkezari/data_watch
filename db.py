@@ -4,8 +4,7 @@ import pyodbc
 import inspect
 import warnings
 import pandas.io.sql as sql
-from databricks import sql
-import pandas as pd
+
 
 
 def connect(alias):
@@ -68,34 +67,6 @@ def db_execute(query, servers):
     return
 
 
-def cluster_query(query):
-    """
-    Run a sql query on cluster and return the results in form of a pandas dataframe.
-    """
-    try:
-        data, message, err = pd.DataFrame({}), "", False
-        conn = sql.connect(
-                                server_hostname = os.environ["CLUSTER_HOST"],
-                                http_path = os.environ["CLUSTER_WAREHOUSE_PATH"],
-                                access_token = os.environ["CLUSTER_WAREHOUSE_TOKEN_PYTHON"])
-
-        cursor = conn.cursor()
-        cursor.execute(query)
-        rows = cursor.fetchall()
-        cols = [column[0] for column in cursor.description]
-        data = pd.DataFrame.from_records(rows, columns=cols) 
-        message = "success"   
-    except Exception as e:
-        err = True
-        message = f"{inspect.stack()[0][3]}:: {str(e).strip()}"            
-    finally:
-        try:
-            cursor.close()
-            conn.close() 
-        except Exception as e:
-            err = True
-            message += f" {str(e).strip()}"    
-    return data, message, err
 
 
 
