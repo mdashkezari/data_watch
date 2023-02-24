@@ -145,7 +145,7 @@ async def cluster_temporal_range(response: Response, table_name: str):
             )
 async def custom_cluster_query(background_tasks: BackgroundTasks, response: Response, query: str):
     """
-    Run a custom ANSI SQL:2003 on the cluster and return the results.
+    Run a custom ANSI SQL:2003 on the cluster and return the results in form of a parquet file.
     """
     try:
         data, msg, err = cluster_query(query)
