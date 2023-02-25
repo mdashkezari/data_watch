@@ -89,20 +89,22 @@ import shutil, inspect, random
 from fastapi import Response, File, UploadFile, BackgroundTasks
 from starlette import status
 from http import HTTPStatus
-
+from pydantic import BaseModel
+from typing import List
 
 
 def classify_image(model, image_path, class_names, img_shape, channels, scale, verbose):  
   """
   Inference on a single image.
-  Return the top class probability and its name.
+  Return the top class probability, its name, the probability associated with each class, and their corresponding class name.
   """
   img = tf.io.read_file(image_path)
   img = tf.image.decode_image(img, channels=channels)
   img = tf.image.resize(img, [img_shape, img_shape])
   if scale: img = img / 255.
   pred_prob = model.predict(tf.expand_dims(img, axis=0), verbose=verbose)
-  return pred_prob.max(), class_names[pred_prob.argmax()]
+  pred_prob = pred_prob[0]  
+  return pred_prob.max(), class_names[pred_prob.argmax()], pred_prob, class_names
 
 
 def load_model(model_path, class_names_path):
@@ -115,16 +117,27 @@ model, class_names = load_model(f"model/{model_name}", f"model/{model_name}/clas
 print("model loaded")
 
 
+
+class CNNModel(BaseModel):
+    prediction: str = ""
+    prediction_probability: float = 0.0
+    all_probs: List[float] = []
+    all_prob_names: List[str] = []
+    message: str = ""
+    error: bool = False
+    version: str = API_VERSION
+
+
 @app.post(
             "/root", 
             tags=["Root"],  
             status_code=HTTPStatus.ACCEPTED,
             summary="Root",
             description="",
-            response_description=RESPONSE_MODEL_DESCIPTION,
-            response_model=RESMOD
+            # response_description=RESPONSE_MODEL_DESCIPTION,
+            response_model=CNNModel
             )
-async def upload_image(
+async def inference_image(
                 response: Response,
                 file: UploadFile = File(...), 
                 ):         
@@ -137,7 +150,7 @@ async def upload_image(
         make_dir(RAND_UPLOAD_EXCEL_DIR)
         uploadedExcelFName = f"{RAND_UPLOAD_EXCEL_DIR}{file.filename}"
         with open(uploadedExcelFName, "w+b") as buffer: shutil.copyfileobj(file.file, buffer)            
-        pred_prob, pred_class_name = classify_image(model, uploadedExcelFName, class_names, img_shape=224, channels=1, scale=False, verbose=0)
+        pred_prob, pred_class_name, all_probs, all_prob_names = classify_image(model, uploadedExcelFName, class_names, img_shape=224, channels=1, scale=False, verbose=0)
         shutil.rmtree(RAND_UPLOAD_EXCEL_DIR) 
         msg = "success"
     except Exception as e:
@@ -145,7 +158,14 @@ async def upload_image(
         msg = f"{inspect.stack()[0][3]}: {str(e).strip()}"   
         err = True
         print(msg)     
-    return {"data": {"prediction": pred_class_name, "prediction_probability": float(pred_prob)}, "message": "", "error": err, "version": API_VERSION}     
+    return {"prediction": pred_class_name, 
+            "prediction_probability": float(pred_prob),
+            "all_probs": list(all_probs),
+            "all_prob_names": list(all_prob_names),                     
+            "message": "", 
+            "error": err, 
+            "version": API_VERSION
+            }     
 
 
 @app.get(

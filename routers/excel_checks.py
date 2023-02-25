@@ -196,7 +196,7 @@ def cross_validate_data_vars(dataDF, varsDF, datasetDF, exportPath=""):
             print(distributor)
         for _, row in varsDF.iterrows():  
             kws, sensor, vlong, vshort = check_str(row["var_keywords"]), check_str(row["var_sensor"]), check_str(row["var_long_name"]), check_str(row["var_short_name"])
-            dupKWs = kws.split(",")
+            dupKWs = kws.split(",")       
             kwss = set(dupKWs)
             # duplicate keywords
             for item in kwss: dupKWs.remove(item)                
@@ -208,7 +208,7 @@ def cross_validate_data_vars(dataDF, varsDF, datasetDF, exportPath=""):
             kwLowered = [k.lower().strip() for k in list(kwss)]
             for r in regions:
                 if r in kwLowered: regionFound = True
-            if not regionFound: failure_case.append(f"add keyword to {vshort} [region name]")     
+            if not regionFound: failure_case.append(f"add keyword to {vshort} [region name]")                                 
 
             if kws.find(sensor) == -1: failure_case.append(kw_msg(vshort, "sensor", sensor))
             if kws.find(vlong) == -1: failure_case.append(kw_msg(vshort, "var long name", vlong))
@@ -216,8 +216,6 @@ def cross_validate_data_vars(dataDF, varsDF, datasetDF, exportPath=""):
             if kws.find(dshort) == -1: failure_case.append(kw_msg(vshort, "dataset short name", dshort))
             if kws.find(dlong) == -1: failure_case.append(kw_msg(vshort, "dataset long name", dlong))
             if kws.find(make) == -1: failure_case.append(kw_msg(vshort, "dataset make", make))
-
-
 
             if len(distributor) < 1:
                 failure_case.append(f"distributor of '{vshort}' cannot be non-string or null")

@@ -1,7 +1,7 @@
 
 
 
-from fastapi import APIRouter, status, Response, BackgroundTasks
+from fastapi import APIRouter, status, Response, BackgroundTasks, Request, HTTPException
 from typing import Optional, List
 from fastapi.responses import FileResponse
 import pandas as pd
@@ -130,10 +130,6 @@ async def cluster_temporal_range(response: Response, table_name: str):
 
 
 
-
-
-
-
 @router.get(
             "/query", 
             tags=[], 
@@ -143,12 +139,14 @@ async def cluster_temporal_range(response: Response, table_name: str):
             # response_description=RESPONSE_MODEL_DESCIPTION,
             # response_model=RESMOD
             )
-async def custom_cluster_query(background_tasks: BackgroundTasks, response: Response, query: str):
+async def custom_cluster_query(background_tasks: BackgroundTasks, response: Response, request: Request, sql: str):
     """
     Run a custom ANSI SQL:2003 on the cluster and return the results in form of a parquet file.
     """
+    # if not request.headers.get("Authorization") in list(query("select Api_Key from tblApi_Keys where User_ID in (408, 4) ", servers=["rainier"])[0]["Api_Key"].values):
+    #     raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Unauthorized")     
     try:
-        data, msg, err = cluster_query(query)
+        data, msg, err = cluster_query(sql)
         dataDir = make_random_dir(EXPORT_DIR)
         fn = f"{dataDir}/data.parquet"
         data.to_parquet(fn, index=False) 
@@ -157,7 +155,8 @@ async def custom_cluster_query(background_tasks: BackgroundTasks, response: Resp
     except Exception as e:
         response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
         msg = f"{inspect.stack()[0][3]}: {str(e).strip()}"   
-        print(msg)        
+        print(msg)  
+        return   
     return FileResponse(fn) 
 
 
