@@ -79,6 +79,7 @@ async def root():
 
 
 ########################################################
+import os
 from common import make_dir
 from settings import API_VERSION, UPLOAD_EXCEL_DIR, EXPORT_DIR
 
@@ -98,12 +99,15 @@ def classify_image(model, image_path, class_names, img_shape, channels, scale, v
   Inference on a single image.
   Return the top class probability, its name, the probability associated with each class, and their corresponding class name.
   """
-  img = tf.io.read_file(image_path)
-  img = tf.image.decode_image(img, channels=channels)
-  img = tf.image.resize(img, [img_shape, img_shape])
-  if scale: img = img / 255.
-  pred_prob = model.predict(tf.expand_dims(img, axis=0), verbose=verbose)
-  pred_prob = pred_prob[0]  
+  try:
+    img = tf.io.read_file(image_path)
+    img = tf.image.decode_image(img, channels=channels)
+    img = tf.image.resize(img, [img_shape, img_shape])
+    if scale: img = img / 255.
+    pred_prob = model.predict(tf.expand_dims(img, axis=0), verbose=verbose)
+    pred_prob = pred_prob[0]  
+  except Exception as e:
+    return -1, str(e), [-1], ["error"]
   return pred_prob.max(), class_names[pred_prob.argmax()], pred_prob, class_names
 
 
@@ -139,6 +143,7 @@ class CNNModel(BaseModel):
             )
 async def inference_image(
                 response: Response,
+                channels: int = 3,
                 file: UploadFile = File(...), 
                 ):         
     try:            
@@ -150,7 +155,7 @@ async def inference_image(
         make_dir(RAND_UPLOAD_EXCEL_DIR)
         uploadedExcelFName = f"{RAND_UPLOAD_EXCEL_DIR}{file.filename}"
         with open(uploadedExcelFName, "w+b") as buffer: shutil.copyfileobj(file.file, buffer)            
-        pred_prob, pred_class_name, all_probs, all_prob_names = classify_image(model, uploadedExcelFName, class_names, img_shape=224, channels=1, scale=False, verbose=0)
+        pred_prob, pred_class_name, all_probs, all_prob_names = classify_image(model, uploadedExcelFName, class_names, img_shape=224, channels=channels, scale=False, verbose=0)
         shutil.rmtree(RAND_UPLOAD_EXCEL_DIR) 
         msg = "success"
     except Exception as e:
@@ -158,6 +163,8 @@ async def inference_image(
         msg = f"{inspect.stack()[0][3]}: {str(e).strip()}"   
         err = True
         print(msg)     
+    finally:
+        if os.path.exists(RAND_UPLOAD_EXCEL_DIR): shutil.rmtree(RAND_UPLOAD_EXCEL_DIR)     
     return {"prediction": pred_class_name, 
             "prediction_probability": float(pred_prob),
             "all_probs": list(all_probs),
@@ -177,8 +184,6 @@ async def inference_image(
          )
 async def root_list():
     return {"data": {"class_names": list(class_names)}, "message": "", "error": False, "version": API_VERSION}
-
-
 
 
 ####################################################################################
