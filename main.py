@@ -115,11 +115,21 @@ def load_model(model_path, class_names_path):
   return tf.keras.models.load_model(model_path), pd.read_csv(class_names_path)["class_names"].values
 
 
-print("loading model ...")
-model_name = "tvt_efficientNetB0_balanced1000_MERGED_ALL_aug"
-model, class_names = load_model(f"model/{model_name}", f"model/{model_name}/class_names.csv")
-print("model loaded")
-
+models = {}
+model_names = [
+               "tvt_efficientNetB0_balanced1000_MERGED_ALL_plus_SYKE_COWEN_aug", 
+               "tvt_efficientNetB0_balanced1000_BERING_aug_hight_dense_1024_2_512",
+               "tvt_efficientNetB0_balanced1000_ISIIS_COWEN_aug_hight_dense_1024_2_512", 
+               "tvt_efficientNetB0_balanced1000_MERGED_ONLY_IFCB_plus_SYKE_aug", 
+               "tvt_efficientNetB0_balanced1000_ZOO_aug", 
+               "tvt_efficientNetB0_balanced1000_MERGED_ALL_aug", 
+               ]
+print("loading models ...")
+for i, model_name in enumerate(model_names):               
+    m, c = load_model(f"models/{model_name}", f"models/{model_name}/class_names.csv")
+    models[i] = {"model": m, "class_names": c}
+    print(f"\t {model_name} loaded")
+print("models loaded")
 
 
 class CNNModel(BaseModel):
@@ -143,6 +153,7 @@ class CNNModel(BaseModel):
             )
 async def inference_image(
                 response: Response,
+                model_index: int = 0,
                 channels: int = 3,
                 file: UploadFile = File(...), 
                 ):         
@@ -155,7 +166,7 @@ async def inference_image(
         make_dir(RAND_UPLOAD_EXCEL_DIR)
         uploadedExcelFName = f"{RAND_UPLOAD_EXCEL_DIR}{file.filename}"
         with open(uploadedExcelFName, "w+b") as buffer: shutil.copyfileobj(file.file, buffer)            
-        pred_prob, pred_class_name, all_probs, all_prob_names = classify_image(model, uploadedExcelFName, class_names, img_shape=224, channels=channels, scale=False, verbose=0)
+        pred_prob, pred_class_name, all_probs, all_prob_names = classify_image(models[model_index]["model"], uploadedExcelFName, models[model_index]["class_names"], img_shape=224, channels=channels, scale=False, verbose=0)
         shutil.rmtree(RAND_UPLOAD_EXCEL_DIR) 
         msg = "success"
     except Exception as e:
@@ -182,8 +193,8 @@ async def inference_image(
          response_description=RESPONSE_MODEL_DESCIPTION,
          response_model=RESMOD         
          )
-async def root_list():
-    return {"data": {"class_names": list(class_names)}, "message": "", "error": False, "version": API_VERSION}
+async def root_list(model_index: int = 0):
+    return {"data": {"class_names": list(models[model_index]["class_names"])}, "message": "", "error": False, "version": API_VERSION}
 
 
 ####################################################################################
