@@ -117,12 +117,12 @@ def load_model(model_path, class_names_path):
 
 models = {}
 model_names = [
-               "tvt_efficientNetB0_balanced1000_MERGED_ALL_plus_SYKE_COWEN_aug", 
-               "tvt_efficientNetB0_balanced1000_BERING_aug_hight_dense_1024_2_512",
-               "tvt_efficientNetB0_balanced1000_ISIIS_COWEN_aug_hight_dense_1024_2_512", 
-               "tvt_efficientNetB0_balanced1000_MERGED_ONLY_IFCB_plus_SYKE_aug", 
-               "tvt_efficientNetB0_balanced1000_ZOO_aug", 
-               "tvt_efficientNetB0_balanced1000_MERGED_ALL_aug", 
+               "tvt_efficientNetB0_balanced1000_MERGED_ALL_plus_SYKE_COWEN_aug",            # all
+               "tvt_efficientNetB0_balanced1000_MERGED_ONLY_IFCB_plus_SYKE_aug",            # IFCB
+               "tvt_efficientNetB0_balanced1000_ZOO_aug",                                   # ZOOSCAN
+               "tvt_efficientNetB0_balanced1000_ISIIS_COWEN_aug_hight_dense_1024_2_512",    # ISIIS
+               "tvt_efficientNetB0_balanced1000_BERING_aug_hight_dense_1024_2_512",         # ZOOVIS
+               "tvt_efficientNetB0_balanced1000_MERGED_ALL_aug",                            # all - SYKE - COWEN
                ]
 print("loading models ...")
 for i, model_name in enumerate(model_names):               
