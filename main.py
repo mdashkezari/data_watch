@@ -122,6 +122,7 @@ model_names = [
                "tvt_efficientNetB0_balanced1000_ZOO_aug",                                   # ZOOSCAN
                "tvt_efficientNetB0_balanced1000_ISIIS_COWEN_aug_hight_dense_1024_2_512",    # ISIIS
                "tvt_efficientNetB0_balanced1000_BERING_aug_hight_dense_1024_2_512",         # ZOOVIS
+               "tvt_efficientNetB0_imbalanced_MERGED_ALL_plus_SYKE_COWEN_aug",              # all Imbalanced
                "tvt_efficientNetB0_balanced1000_MERGED_ALL_aug",                            # all - SYKE - COWEN
                ]
 print("loading models ...")
