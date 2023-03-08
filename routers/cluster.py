@@ -143,8 +143,8 @@ async def custom_cluster_query(background_tasks: BackgroundTasks, response: Resp
     """
     Run a custom ANSI SQL:2003 on the cluster and return the results in form of a parquet file.
     """
-    # if not request.headers.get("Authorization") in list(query("select Api_Key from tblApi_Keys where User_ID in (408, 4) ", servers=["rainier"])[0]["Api_Key"].values):
-    #     raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Unauthorized")     
+    if not request.headers.get("Authorization") in list(query("select Api_Key from tblApi_Keys where User_ID in (408, 4) ", servers=["rainier"])[0]["Api_Key"].values):
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Unauthorized")     
     try:
         data, msg, err = cluster_query(sql)
         dataDir = make_random_dir(EXPORT_DIR)
