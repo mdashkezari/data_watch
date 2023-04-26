@@ -98,7 +98,7 @@ def find_cruise(name):
     if len(cruiseDF) == 1: 
         return cruiseDF
     else:
-        cdf, _, _ = query(f"select distinct cruise_ID from tblCruise_Keywords where keywords like '%{name}%'", servers=["rainier"])
+        cdf, _, _ = query(f"select distinct cruise_ID from tblCruise_Keywords where keywords like '{name}'", servers=["rainier"])
         if len(cdf) == 1:
             cruiseDF, _, _ = query(f"select * from tblCruise where ID={cdf.cruise_ID.values[0]}", servers=["rainier"])
             return cruiseDF

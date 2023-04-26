@@ -243,6 +243,7 @@ def cross_validate_data_vars(dataDF, varsDF, datasetDF, exportPath=""):
                 failure_case.append(kw_msg(vshort, "dataset acknowledgement", ack))
                 varsDF.at[vind, "var_keywords"] += f", {ack}"
             for cruise in cruiseNames:
+                cruise = str(cruise)
                 if cruise != cruise: continue
                 if kws.find(cruise) == -1: 
                     failure_case.append(kw_msg(vshort, "cruise name", cruise))
@@ -505,17 +506,17 @@ async def upload_file(
             eda(dataDF, fname=f"{EXPORT_EXCEL_DIR}viz.html")
             pd.DataFrame({"version": [API_VERSION]}).to_csv(f"{EXPORT_EXCEL_DIR}version.csv", index=False)
 
-            # ###### save the revised excel file #########
-            # with pd.ExcelWriter(f"{EXPORT_EXCEL_DIR}revised_{basename}.xlsx") as writer: 
-            #     if len(dataDF) > 0: 
-            #         if "time" in list(dataDF.columns):
-            #             dataDF["time"] = dataDF["time"].astype(str)    # excel writer doesn't support timezone. if don't convert to string, it will break when time has timezone 
-            #         dataDF.to_excel(writer, sheet_name="data", index=False)
-            #     if len(datasetDF) > 0: 
-            #         datasetDF.to_excel(writer, sheet_name="dataset_meta_data", index=False)
-            #     if len(varsDF_modified) > 0: 
-            #         varsDF_modified.to_excel(writer, sheet_name="vars_meta_data", index=False)
-            # #############################################
+            ###### save the revised excel file #########
+            with pd.ExcelWriter(f"{EXPORT_EXCEL_DIR}revised_{basename}.xlsx") as writer: 
+                if len(dataDF) > 0: 
+                    if "time" in list(dataDF.columns):
+                        dataDF["time"] = dataDF["time"].astype(str)    # excel writer doesn't support timezone. if don't convert to string, it will break when time has timezone 
+                    dataDF.to_excel(writer, sheet_name="data", index=False)
+                if len(datasetDF) > 0: 
+                    datasetDF.to_excel(writer, sheet_name="dataset_meta_data", index=False)
+                if len(varsDF_modified) > 0: 
+                    varsDF_modified.to_excel(writer, sheet_name="vars_meta_data", index=False)
+            #############################################
 
                             
         zipFN = f"{EXPORT_DIR}{basename}_{uploadID}"
