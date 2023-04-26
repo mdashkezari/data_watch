@@ -193,10 +193,9 @@ def cross_validate_data_vars(dataDF, varsDF, datasetDF, exportPath=""):
         if "cruise_names" in list(datasetDF.columns): cruiseNames = datasetDF["cruise_names"].values
         for _, row in datasetDF.head(1).iterrows(): 
             dshort, dlong, make, distributor, source, ack = check_str(row["dataset_short_name"]), check_str(row["dataset_long_name"]), check_str(row["dataset_make"]), check_str(row["dataset_distributor"]), check_str(row["dataset_source"]), check_str(row["dataset_acknowledgement"])
-            print(distributor)
-        for _, row in varsDF.iterrows():  
+        for vind, row in varsDF.iterrows():  
             kws, sensor, vlong, vshort = check_str(row["var_keywords"]), check_str(row["var_sensor"]), check_str(row["var_long_name"]), check_str(row["var_short_name"])
-            dupKWs = kws.split(",")       
+            dupKWs = kws.split(",")
             kwss = set(dupKWs)
             # duplicate keywords
             for item in kwss: dupKWs.remove(item)                
@@ -210,25 +209,44 @@ def cross_validate_data_vars(dataDF, varsDF, datasetDF, exportPath=""):
                 if r in kwLowered: regionFound = True
             if not regionFound: failure_case.append(f"add keyword to {vshort} [region name]")                                 
 
-            if kws.find(sensor) == -1: failure_case.append(kw_msg(vshort, "sensor", sensor))
-            if kws.find(vlong) == -1: failure_case.append(kw_msg(vshort, "var long name", vlong))
-            if kws.find(vshort) == -1: failure_case.append(kw_msg(vshort, "var short name", vshort))
-            if kws.find(dshort) == -1: failure_case.append(kw_msg(vshort, "dataset short name", dshort))
-            if kws.find(dlong) == -1: failure_case.append(kw_msg(vshort, "dataset long name", dlong))
-            if kws.find(make) == -1: failure_case.append(kw_msg(vshort, "dataset make", make))
+            if kws.find(sensor) == -1: 
+                failure_case.append(kw_msg(vshort, "sensor", sensor))
+                varsDF.at[vind, "var_keywords"] += f", {sensor}"
+            if kws.find(vlong) == -1: 
+                failure_case.append(kw_msg(vshort, "var long name", vlong))
+                varsDF.at[vind, "var_keywords"] += f", {vlong}"
+            if kws.find(vshort) == -1: 
+                failure_case.append(kw_msg(vshort, "var short name", vshort))
+                varsDF.at[vind, "var_keywords"] += f", {vshort}"
+
+            if kws.find(dshort) == -1: 
+                failure_case.append(kw_msg(vshort, "dataset short name", dshort))
+                varsDF.at[vind, "var_keywords"] += f", {dshort}"
+            if kws.find(dlong) == -1: 
+                failure_case.append(kw_msg(vshort, "dataset long name", dlong))
+                varsDF.at[vind, "var_keywords"] += f", {dlong}"
+            if kws.find(make) == -1: 
+                failure_case.append(kw_msg(vshort, "dataset make", make))
+                varsDF.at[vind, "var_keywords"] += f", {make}"
 
             if len(distributor) < 1:
                 failure_case.append(f"distributor of '{vshort}' cannot be non-string or null")
             elif kws.find(distributor) == -1: 
                 failure_case.append(kw_msg(vshort, "dataset distributor", distributor))
+                varsDF.at[vind, "var_keywords"] += f", {distributor}"
             if len(source) < 1:
                 failure_case.append(f"source of '{vshort}' cannot be non-string or null")
             elif kws.find(source) == -1: 
                 failure_case.append(kw_msg(vshort, "dataset source", source))
-            if kws.find(ack) == -1: failure_case.append(kw_msg(vshort, "dataset acknowledgement", ack))
+                varsDF.at[vind, "var_keywords"] += f", {source}"
+            if kws.find(ack) == -1: 
+                failure_case.append(kw_msg(vshort, "dataset acknowledgement", ack))
+                varsDF.at[vind, "var_keywords"] += f", {ack}"
             for cruise in cruiseNames:
                 if cruise != cruise: continue
-                if kws.find(cruise) == -1: failure_case.append(kw_msg(vshort, "cruise name", cruise))
+                if kws.find(cruise) == -1: 
+                    failure_case.append(kw_msg(vshort, "cruise name", cruise))
+                    varsDF.at[vind, "var_keywords"] += f", {cruise}"
 
     except Exception as e:
         failure_case.append(str(e))
@@ -238,7 +256,7 @@ def cross_validate_data_vars(dataDF, varsDF, datasetDF, exportPath=""):
         result = errDF.fillna("").to_dict()
     except:
         result = {}    
-    return result 
+    return result, varsDF 
 
 
 
@@ -303,21 +321,31 @@ def dead_links_datasetDF(datasetDF, exportPath=""):
 
 def check_cruises(datasetDF, dataDF, exportPath=""):
     failure_case = []
+    cruiseColNameInDataTab = "cruise"
     try:
         if "cruise_names" in list(datasetDF.columns):        
-            if len(dataDF)>0:
-                dataTimes = pd.to_datetime(dataDF["time"])
-                dataStartTime, dataEndTime = min(dataTimes).replace(tzinfo=None), max(dataTimes).replace(tzinfo=None)
-                dataMinLat, dataMaxLat = min(dataDF["lat"]), max(dataDF["lat"])
-                dataMinLon, dataMaxLon = min(dataDF["lon"]), max(dataDF["lon"])
             cruiseNames = datasetDF["cruise_names"].values
             for index, cruise in enumerate(cruiseNames):
                 print(f"\tchecking cruise ({index+1}/{len(cruiseNames)}): {cruise}")
-                cruiseDF, _, _ = find_cruise(cruise)
+                cruiseDF = find_cruise(cruise)
                 if len(cruiseDF) != 1: 
                     failure_case.append(f"cannot identify {cruise} in the CMAP cruise list")
-                elif len(dataDF)>0:
+                elif len(dataDF) > 0:
                     try:
+                        if cruiseColNameInDataTab in list(dataDF.columns):
+                            filteredDataDF = dataDF.query(f"{cruiseColNameInDataTab}=='{cruise}'")
+                            if len(filteredDataDF) < 1: 
+                                failure_case.append(f"the '{cruise}' is listed in the dataset tab but has no corresponding data in the data tab.")   
+                                continue                             
+                        else: 
+                            filteredDataDF = dataDF    
+                        if len(filteredDataDF) > 0:
+                            dataTimes = pd.to_datetime(filteredDataDF["time"])
+                            dataStartTime, dataEndTime = min(dataTimes).replace(tzinfo=None), max(dataTimes).replace(tzinfo=None)
+                            dataMinLat, dataMaxLat = min(filteredDataDF["lat"]), max(filteredDataDF["lat"])
+                            dataMinLon, dataMaxLon = min(filteredDataDF["lon"]), max(filteredDataDF["lon"])
+
+
                         cruiseStartTime, cruiseEndTime = pd.to_datetime(cruiseDF["Start_Time"]).values[0], pd.to_datetime(cruiseDF["End_Time"]).values[0]
                         cruiseLatMin, cruiseLatMax = cruiseDF["Lat_Min"].values[0], cruiseDF["Lat_Max"].values[0]
                         cruiseLonMin, cruiseLonMax = cruiseDF["Lon_Min"].values[0], cruiseDF["Lon_Max"].values[0]
@@ -329,7 +357,7 @@ def check_cruises(datasetDF, dataDF, exportPath=""):
                         if cruiseLonMin > dataMinLon or cruiseLonMax < dataMaxLon: 
                             failure_case.append(f"longitude range in the data sheet do not match those of cruise {cruise}\n data lon range: {(dataMinLon, dataMaxLon)} \ncruise lon range: {(cruiseLonMin, cruiseLonMax)}")
                     except Exception as e:
-                        failure_case.append(f"Exception in inner 'check_cruises': {str(e)}")
+                        failure_case.append(f"Exception in inner 'check_cruises' when checking {cruise}: {str(e)}")
     except Exception as e:
         failure_case.append(f"Exception in 'check_cruises': {str(e)}")
     errDF = pd.DataFrame({"failure_case": failure_case})    
@@ -339,6 +367,46 @@ def check_cruises(datasetDF, dataDF, exportPath=""):
     except:
         result = {}    
     return result 
+
+
+# def check_cruises_org(datasetDF, dataDF, exportPath=""):
+#     failure_case = []
+#     try:
+#         if "cruise_names" in list(datasetDF.columns):        
+#             if len(dataDF)>0:
+#                 dataTimes = pd.to_datetime(dataDF["time"])
+#                 dataStartTime, dataEndTime = min(dataTimes).replace(tzinfo=None), max(dataTimes).replace(tzinfo=None)
+#                 dataMinLat, dataMaxLat = min(dataDF["lat"]), max(dataDF["lat"])
+#                 dataMinLon, dataMaxLon = min(dataDF["lon"]), max(dataDF["lon"])
+#             cruiseNames = datasetDF["cruise_names"].values
+#             for index, cruise in enumerate(cruiseNames):
+#                 print(f"\tchecking cruise ({index+1}/{len(cruiseNames)}): {cruise}")
+#                 cruiseDF, _, _ = find_cruise(cruise)
+#                 if len(cruiseDF) != 1: 
+#                     failure_case.append(f"cannot identify {cruise} in the CMAP cruise list")
+#                 elif len(dataDF)>0:
+#                     try:
+#                         cruiseStartTime, cruiseEndTime = pd.to_datetime(cruiseDF["Start_Time"]).values[0], pd.to_datetime(cruiseDF["End_Time"]).values[0]
+#                         cruiseLatMin, cruiseLatMax = cruiseDF["Lat_Min"].values[0], cruiseDF["Lat_Max"].values[0]
+#                         cruiseLonMin, cruiseLonMax = cruiseDF["Lon_Min"].values[0], cruiseDF["Lon_Max"].values[0]
+                        
+#                         if cruiseStartTime > dataStartTime or cruiseEndTime < dataEndTime: 
+#                             failure_case.append(f"temporal range in the data sheet do not match those of cruise {cruise}.\n data temporal range: {(dataStartTime, dataEndTime)} \ncruise temporal range: {(cruiseStartTime, cruiseEndTime)}")
+#                         if cruiseLatMin > dataMinLat or cruiseLatMax < dataMaxLat: 
+#                             failure_case.append(f"lattitude range in the data sheet do not match those of cruise {cruise}.\n data lat range: {(dataMinLat, dataMaxLat)} \ncruise lat range: {(cruiseLatMin, cruiseLatMax)}")
+#                         if cruiseLonMin > dataMinLon or cruiseLonMax < dataMaxLon: 
+#                             failure_case.append(f"longitude range in the data sheet do not match those of cruise {cruise}\n data lon range: {(dataMinLon, dataMaxLon)} \ncruise lon range: {(cruiseLonMin, cruiseLonMax)}")
+#                     except Exception as e:
+#                         failure_case.append(f"Exception in inner 'check_cruises': {str(e)}")
+#     except Exception as e:
+#         failure_case.append(f"Exception in 'check_cruises': {str(e)}")
+#     errDF = pd.DataFrame({"failure_case": failure_case})    
+#     if len(exportPath) > 0: errDF.to_csv(exportPath, index=False)
+#     try:
+#         result = errDF.fillna("").to_dict()
+#     except:
+#         result = {}    
+#     return result 
 
 
 
@@ -428,7 +496,7 @@ async def upload_file(
             # just pass the first row of the dataset_meta_data    
             datasetSchemaCases = validate_schema(datasetSchema, datasetDF.head(1), exportPath=f"{EXPORT_EXCEL_DIR}dataset_schema.csv")       
             dataSchemaCases = validate_schema(dataSchema, dataDF, exportPath=f"{EXPORT_EXCEL_DIR}data_schema.csv")
-            cvdv = cross_validate_data_vars(dataDF, varsDF, datasetDF, exportPath=f"{EXPORT_EXCEL_DIR}cross_validate_data_vars.csv")        
+            cvdv, varsDF_modified = cross_validate_data_vars(dataDF, varsDF, datasetDF, exportPath=f"{EXPORT_EXCEL_DIR}cross_validate_data_vars.csv")        
             # lang = lang_datasetDF(datasetDF.head(1), exportPath=f"{EXPORT_EXCEL_DIR}lang.csv")
             # lang_kw = lang_keywords(varsDF, exportPath=f"{EXPORT_EXCEL_DIR}lang_keywords.csv")
             lang, lang_kw = {}, {}
@@ -436,6 +504,20 @@ async def upload_file(
             cruise = check_cruises(datasetDF, dataDF, exportPath=f"{EXPORT_EXCEL_DIR}cruise.csv")
             eda(dataDF, fname=f"{EXPORT_EXCEL_DIR}viz.html")
             pd.DataFrame({"version": [API_VERSION]}).to_csv(f"{EXPORT_EXCEL_DIR}version.csv", index=False)
+
+            # ###### save the revised excel file #########
+            # with pd.ExcelWriter(f"{EXPORT_EXCEL_DIR}revised_{basename}.xlsx") as writer: 
+            #     if len(dataDF) > 0: 
+            #         if "time" in list(dataDF.columns):
+            #             dataDF["time"] = dataDF["time"].astype(str)    # excel writer doesn't support timezone. if don't convert to string, it will break when time has timezone 
+            #         dataDF.to_excel(writer, sheet_name="data", index=False)
+            #     if len(datasetDF) > 0: 
+            #         datasetDF.to_excel(writer, sheet_name="dataset_meta_data", index=False)
+            #     if len(varsDF_modified) > 0: 
+            #         varsDF_modified.to_excel(writer, sheet_name="vars_meta_data", index=False)
+            # #############################################
+
+                            
         zipFN = f"{EXPORT_DIR}{basename}_{uploadID}"
         shutil.make_archive(zipFN, "zip", EXPORT_EXCEL_DIR)
         zipFN += ".zip"
