@@ -243,8 +243,8 @@ def cross_validate_data_vars(dataDF, varsDF, datasetDF, exportPath=""):
                 failure_case.append(kw_msg(vshort, "dataset acknowledgement", ack))
                 varsDF.at[vind, "var_keywords"] += f", {ack}"
             for cruise in cruiseNames:
-                cruise = str(cruise)
                 if cruise != cruise: continue
+                cruise = str(cruise)
                 if kws.find(cruise) == -1: 
                     failure_case.append(kw_msg(vshort, "cruise name", cruise))
                     varsDF.at[vind, "var_keywords"] += f", {cruise}"
@@ -329,8 +329,9 @@ def check_cruises(datasetDF, dataDF, exportPath=""):
             for index, cruise in enumerate(cruiseNames):
                 print(f"\tchecking cruise ({index+1}/{len(cruiseNames)}): {cruise}")
                 cruiseDF = find_cruise(cruise)
-                if len(cruiseDF) != 1: 
-                    failure_case.append(f"cannot identify {cruise} in the CMAP cruise list")
+                if len(cruiseDF) != 1:
+                    if cruise == cruise and cruise not in ("nan", "NaN", "NAN", "NA", None):
+                        failure_case.append(f"cannot identify {cruise} in the CMAP cruise list")
                 elif len(dataDF) > 0:
                     try:
                         if cruiseColNameInDataTab in list(dataDF.columns):
