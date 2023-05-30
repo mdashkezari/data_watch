@@ -23,8 +23,8 @@ def connect(alias):
                                     }[alias], 
                             PORT=os.environ.get("DB_PORT", ""), 
                             DATABASE="Opedia", 
-                            Uid=os.environ.get("DB_REST_ADMIN", ""), 
-                            Pwd=os.environ.get("DB_REST_ADMIN_PASSWORD", "") 
+                            Uid=os.environ.get("DB_REST_USER", ""), 
+                            Pwd=os.environ.get("DB_REST_USER_PASSWORD", "") 
                             )
     except Exception as e:
         print(f"Exception in connect: {str(e)}")    
@@ -65,8 +65,3 @@ def db_execute(query, servers):
     except Exception as e:    
         print(f"error in db_execute: {str(e)}")
     return
-
-
-
-
-
