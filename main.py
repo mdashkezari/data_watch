@@ -149,7 +149,7 @@ class CNNModel(BaseModel):
             "/cnn", 
             tags=["Root"],  
             status_code=HTTPStatus.ACCEPTED,
-            summary="Plankton image classifiers",
+            summary="Plankton image classifiers (Guest Endpoint!)",
             description="",
             # response_description=RESPONSE_MODEL_DESCIPTION,
             response_model=CNNModel
@@ -195,7 +195,7 @@ async def inference_image(
 
     - `message`: general description or an error message.
 
-    - `error`: True is when an exception occurs. 
+    - `error`: True when an exception occurs. 
 
     - `version`: the API version.
 
@@ -232,7 +232,7 @@ async def inference_image(
 @app.get(
          "/plankton", 
          tags=["Root"], 
-         summary="List of plankton species covered by the CNN models",
+         summary="List of plankton species covered by the CNN models (Guest Endpoint!)",
          response_description=RESPONSE_MODEL_DESCIPTION,
          response_model=RESMOD         
          )
@@ -263,7 +263,7 @@ async def plankton_list(model_index: int = 0):
 
     - `message`: general description or an error message.
 
-    - `error`: True is when an exception occurs. 
+    - `error`: True when an exception occurs. 
 
     - `version`: the API version.
 
