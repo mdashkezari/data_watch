@@ -511,7 +511,7 @@ async def upload_file(
             with pd.ExcelWriter(f"{EXPORT_EXCEL_DIR}revised_{basename}.xlsx") as writer: 
                 if len(dataDF) > 0: 
                     if "time" in list(dataDF.columns):
-                        dataDF["time"] = dataDF["time"].astype(str)    # excel writer doesn't support timezone. if don't convert to string, it will break when time has timezone 
+                        dataDF["time"] = dataDF["time"].dt.strftime("%Y-%m-%dT%H:%M:%S")    # excel writer doesn't support timezone. if don't convert to string, it will break when time has timezone 
                     dataDF.to_excel(writer, sheet_name="data", index=False)
                 if len(datasetDF) > 0: 
                     datasetDF.to_excel(writer, sheet_name="dataset_meta_data", index=False)
