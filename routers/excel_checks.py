@@ -347,11 +347,9 @@ def check_cruises(datasetDF, dataDF, exportPath=""):
                             dataMinLat, dataMaxLat = min(filteredDataDF["lat"]), max(filteredDataDF["lat"])
                             dataMinLon, dataMaxLon = min(filteredDataDF["lon"]), max(filteredDataDF["lon"])
 
-
                         cruiseStartTime, cruiseEndTime = pd.to_datetime(cruiseDF["Start_Time"]).values[0], pd.to_datetime(cruiseDF["End_Time"]).values[0]
                         cruiseLatMin, cruiseLatMax = cruiseDF["Lat_Min"].values[0], cruiseDF["Lat_Max"].values[0]
                         cruiseLonMin, cruiseLonMax = cruiseDF["Lon_Min"].values[0], cruiseDF["Lon_Max"].values[0]
-                        
                         if cruiseStartTime > dataStartTime or cruiseEndTime < dataEndTime: 
                             failure_case.append(f"temporal range in the data sheet do not match those of cruise {cruise}.\n data temporal range: {(dataStartTime, dataEndTime)} \ncruise temporal range: {(cruiseStartTime, cruiseEndTime)}")
                         if cruiseLatMin > dataMinLat or cruiseLatMax < dataMaxLat: 

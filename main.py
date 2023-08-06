@@ -7,6 +7,7 @@ from routers import db_checks, excel_checks, cluster
 from settings import RESPONSE_MODEL_DESCIPTION, tags_metadata, API_VERSION, API_DESCRIPTION
 from common import project_init, store_call
 from settings import ResponseModel as RESMOD
+import recommender as rec
 
 
 app = FastAPI(
@@ -269,6 +270,63 @@ async def plankton_list(model_index: int = 0):
 
     """  
     return {"data": {"class_names": list(models[model_index]["class_names"])}, "message": "", "error": False, "version": API_VERSION}
+
+
+
+##############################################################
+#                                                            #
+#             Dataset Recommendation Systems                 #
+#                                                            #
+##############################################################
+
+@app.get(
+         "/recommender", 
+         tags=["Root"], 
+         summary="A hybrid recommender system to suggest datasets that are likely to match user's interests (Guest Endpoint!)",
+         response_description=RESPONSE_MODEL_DESCIPTION,
+         response_model=RESMOD         
+         )
+async def recommend_dataset(user_id: int):
+    """
+    Return list of datasets based on the overall datasets popularity, the user's recent activities, and collaborative filtering algorithms.
+    The collaborative filtering method computes a list of datasets that users *similar* to `user_id` have used but `user_id` has not used yet.
+
+    - `user_id`: an integer indicating the user's ID.
+   
+
+    <br/><br/>
+    Returns
+    -------    
+    a JSON object containing the followings:
+    
+    - `data`: an empty JSON.
+
+    - `message`: general description or an error message.
+
+    - `error`: True when an exception occurs. 
+
+    - `version`: the API version.
+
+    """  
+    if not rec.validate_userid(user_id):
+        return {"data": {}, "message": "Invalid user", "error": True, "version": API_VERSION}
+    
+    rec_obj = {}
+    pop_ds, _, _ = rec.popular_datasets(top=20)
+    rec_obj["popular"] = list(pop_ds["Table_Name"].values)
+    if user_id != 1:    # if user is unregistered
+        ############### "Use Again" Approach ###############
+        ## recently used datasets by the user him/herself  
+        recent_ds, _, _ = rec.recently_used_datasets(user_id, top=20)
+        rec_obj["use_again"] = list(recent_ds["Table_Name"].values)
+
+        ############ "Others Have Used" Approach ############
+        # recommend dataset based on other similar users
+        ui_df = rec.update_user_item()  
+        # ui_df = get_user_item()   
+        rec_obj["collaborative"] = list(rec.collaborative_based_filtering(ui_df, user_id))
+
+    return {"data": rec_obj, "message": "", "error": False, "version": API_VERSION}
 
 
 ####################################################################################
