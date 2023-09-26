@@ -92,6 +92,11 @@ def get_datasets():
 def get_dataset_refs():
     return query("select * from tblDataset_References r join tblDatasets d on r.Dataset_ID=d.id order by r.dataset_id desc", servers=["rainier"])    
 
+def dataset_by_name(dname):
+    return query(f"select * from tbldatasets where rtrim(lower(Dataset_Name)) = '{dname}' ", servers=["rainier"])
+
+def dataset_by_longname(longname):
+    return query(f"select * from tbldatasets where rtrim(lower(Dataset_Long_Name)) = '{longname}' ", servers=["rainier"])
 
 def find_cruise(name):
     cruiseDF, _, _ = query(f"select * from tblCruise where [Name]='{name}' or Nickname='{name}'", servers=["rainier"]) 

@@ -20,7 +20,7 @@ from bs4 import BeautifulSoup
 import sys
 sys.path.append("..")
 from settings import API_VERSION, SUCCESS_MSG, tags_metadata, UPLOAD_EXCEL_DIR, EXPORT_DIR, SHORT_VAR_REGEX, ResponseModel as RESMOD, RESPONSE_MODEL_DESCIPTION
-from common import make_dir, find_cruise, get_regions
+from common import make_dir, find_cruise, get_regions, dataset_by_name, dataset_by_longname
 
 sys.path.append("../utils") 
 from utils.utils_dead_links import dead_links, get_links
@@ -193,6 +193,8 @@ def cross_validate_data_vars(dataDF, varsDF, datasetDF, exportPath=""):
         if "cruise_names" in list(datasetDF.columns): cruiseNames = datasetDF["cruise_names"].values
         for _, row in datasetDF.head(1).iterrows(): 
             dshort, dlong, make, distributor, source, ack = check_str(row["dataset_short_name"]), check_str(row["dataset_long_name"]), check_str(row["dataset_make"]), check_str(row["dataset_distributor"]), check_str(row["dataset_source"]), check_str(row["dataset_acknowledgement"])
+        if len(dataset_by_name(dshort)[0]) > 0: failure_case.append(f"dataset short name ({dshort}) already taken.")
+        if len(dataset_by_longname(dlong)[0]) > 0: failure_case.append(f"dataset long name ({dlong}) already taken.")
         for vind, row in varsDF.iterrows():  
             kws, sensor, vlong, vshort = check_str(row["var_keywords"]), check_str(row["var_sensor"]), check_str(row["var_long_name"]), check_str(row["var_short_name"])
             dupKWs = kws.split(",")
