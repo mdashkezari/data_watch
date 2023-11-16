@@ -16,7 +16,7 @@ UPLOAD_EXCEL_DIR = f"{UPLOAD_DIR}excel/"
 
 
 
-API_VERSION = "0.1.40"
+API_VERSION = "0.1.41"
 
 SUCCESS_MSG = "success"
 
@@ -35,6 +35,10 @@ DB_DESCRIPTION += "This route exposes methods that are critical in maintaining t
 CLUSTER_DESCRIPTION = "Simons CMAP Big Data cluster is distributed in nature. "
 CLUSTER_DESCRIPTION += "It employs Apache Spark as its compute engine and is capable of ingesting massive datasets (> PB) with short update cycles."
 CLUSTER_DESCRIPTION += "This route involves a series of endpoints to explore and query the cluster dataset."
+
+
+ML_DESCRIPTION = "A group of endpoints representing ML and analytical operations. "
+ML_DESCRIPTION += "These endpoints may not be related to the CMAP data validation processes directly."
 
 class ResponseModel(BaseModel):
     data: dict
@@ -59,5 +63,9 @@ tags_metadata = [
     {
         "name": "Cluster Endpoints",
         "description": "A series of endpoints to query the Simons CMAP Big-Data cluster",
+    }, 
+    {
+        "name": "ML/Analytics Endpoints",
+        "description": "Machine Learning and Analytics endpoints",
     }, 
 ]
