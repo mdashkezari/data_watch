@@ -12,6 +12,7 @@ def connect(alias):
         conn = None
         if platform.system().lower().find("darwin") != -1:
             driver = "/usr/local/lib/libtdsodbc.so"
+            # driver = "/opt/homebrew/Cellar/freetds/1.5.1/lib/libtdsodbc.so"  # for apple silicon m3
         elif platform.system().lower().find("linux") != -1:     
             driver = "/usr/lib/x86_64-linux-gnu/odbc/libtdsodbc.so"        
         conn = pyodbc.connect(DRIVER=driver, 

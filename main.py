@@ -47,15 +47,15 @@ app.include_router(cluster.router)
 app.include_router(ml.router)
 
 
-@app.middleware("http")
-async def user_agent(req: Request, next):
-    store_call(req, req.headers["user-agent"])
-    res = await next(req)    
-    return res
+# @app.middleware("http")
+# async def user_agent(req: Request, next):
+#     store_call(req, req.headers["user-agent"])
+#     res = await next(req)    
+#     return res
 
 
 @app.get(
-         "/", 
+         "/",
          tags=["Root"], 
          summary="API root",
         response_description=RESPONSE_MODEL_DESCIPTION,
