@@ -94,7 +94,7 @@ def popular_datasets(top=-1):
     q = f"""
         select {top_statement} rtrim(Table_Name) Table_Name, count(distinct c.User_ID)/(select 0.01*count(UserID) from tblUsers) uperc from tblAPI_Query q
         join tblApi_Calls c on c.ID=q.Call_ID
-        where len(rtrim(Table_Name))>1 and rtrim(Table_Name) in (select distinct Table_Name from tblVariables)
+        -- where len(rtrim(Table_Name))>1 and rtrim(Table_Name) in (select distinct Table_Name from tblVariables)
         group by Table_Name 
         order by uperc desc    
         """
